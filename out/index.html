@@ -1719,6 +1719,11 @@ function viewAdmin(){
           <button class="btn-mini-primary" style="width:100%;margin-bottom:8px" onclick="openBulkEmail('jefe inmediato')">✉ Enviar evaluación a jefes inmediatos</button>
           <button class="btn-mini-primary" style="width:100%;margin-bottom:8px" onclick="openBulkEmail('gerente de área')">✉ Enviar enlace a gerentes de área</button>
           <button class="mini" style="width:100%" onclick="openBulkEmail()">Gestionar todos los envíos</button>
+          ${USE_SB?`<div style="border-top:1px dashed var(--line);margin-top:12px;padding-top:12px">
+            <p style="font-size:12px;color:var(--muted);margin:0 0 8px">Antes de la campaña, verifica que el envío funcione. Este correo de <b>prueba</b> no llega a ningún jefe ni gerente.</p>
+            <input id="mailTestTo2" type="text" placeholder="tu-correo@ologistics.com" style="width:100%;margin-bottom:8px">
+            <button class="mini" style="width:100%" onclick="sendTestMail(this,'mailTestTo2')">✉ Enviar correo de prueba</button>
+          </div>`:''}
         </div>
         <div class="card pad" style="margin-top:20px">
           <p style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px">Cierre de periodo</p>
@@ -1934,8 +1939,8 @@ function bulkCopyTable(role){
   const lines=rows.map(r=>{ const {subject}=inviteContent(role,r.nombre,r.link); return [r.correo||'', r.nombre, subject, r.link].join('\t'); });
   copyText([head].concat(lines).join('\n'));
 }
-async function sendTestMail(btn){
-  const inp=document.getElementById('mailTestTo');
+async function sendTestMail(btn, inputId){
+  const inp=document.getElementById(inputId||'mailTestTo');
   const to=(inp?inp.value:'').trim();
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){ toast('Escribe un correo válido para la prueba'); if(inp) inp.focus(); return; }
   const {subject,body}=inviteContent('jefe inmediato','Nombre de ejemplo', coordLink('Nombre de ejemplo'));
