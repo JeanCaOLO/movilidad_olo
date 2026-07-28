@@ -1,0 +1,2315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Movilidad de Colaboradores · OLO</title>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1A1A1A; --ink-2:#3A3D40; --muted:#6E7479; --line:#E4E6E8; --line-2:#CFD2D5;
+    --bg:#EEF0F1; --surface:#FFFFFF;
+    --teal:#00B497; --teal-deep:#009C82; --teal-d:#00735E;
+    --ok:#00735E; --okbg:#E2F4EF; --danger:#A33A30; --dangerbg:#FBEAE8;
+    --warn:#8A6D3B; --warnbg:#F4EFE4;
+    --radius:12px; --radius-s:8px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--bg);
+    -webkit-font-smoothing:antialiased;line-height:1.5;font-size:15px}
+  .num{font-family:'Space Grotesk','Inter',sans-serif;font-variant-numeric:tabular-nums}
+  button{font-family:inherit;cursor:pointer}
+  a{color:inherit}
+
+  header.app{position:sticky;top:0;z-index:40;background:#fff;color:var(--ink);border-bottom:3px solid var(--teal)}
+  .app-inner{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .logo{display:flex;align-items:center;gap:13px}
+  .logo .mark{display:flex;align-items:center}
+  .logo .mark img{height:40px;width:auto;display:block}
+  .logo .divider{width:1px;height:32px;background:var(--line)}
+  .logo .txt small{display:block;font-weight:400;font-size:11px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-bottom:1px}
+  .logo .txt b{font-size:16px;font-weight:700;letter-spacing:.2px;color:var(--ink)}
+  .tabs{margin-left:auto;display:flex;gap:4px;background:#F0F2F3;padding:4px;border-radius:10px;flex-wrap:wrap}
+  .tab{border:0;background:transparent;color:var(--muted);padding:8px 16px;border-radius:7px;font-weight:600;font-size:14px;transition:.15s}
+  .tab.active{background:var(--teal);color:#fff}
+  .tab:hover:not(.active){color:var(--ink)}
+
+  main{max-width:1180px;margin:0 auto;padding:26px 24px 80px}
+  .view{display:none}
+  .view.active{display:block}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius)}
+  .card.pad{padding:22px 24px}
+  .card+.card{margin-top:20px}
+  .grid{display:grid;grid-template-columns:1fr 332px;gap:24px;align-items:start}
+  @media(max-width:920px){.grid{grid-template-columns:1fr}}
+
+  .section-label{font-family:'Space Grotesk';font-weight:600;font-size:17px;margin:0 0 4px;letter-spacing:.2px}
+  .section-note{font-size:13px;color:var(--muted);margin:0 0 16px}
+  .dash-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+  .dash-head h2{font-family:'Space Grotesk';font-size:24px;margin:0;font-weight:700}
+
+  label.fld{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .req{color:var(--danger);font-weight:700;margin-left:3px}
+  .field-err{border-color:var(--danger) !important;box-shadow:0 0 0 3px rgba(163,58,48,.12) !important}
+  /* vista administrador: texto justificado a la izquierda para mejor lectura */
+  .av-admin, .av-admin p, .av-admin td, .av-admin th, .av-admin li,
+  .av-admin .section-note, .av-admin .section-label, .av-admin .erp-step,
+  .av-admin .fld, .av-admin h2, .av-admin h3, .av-admin .bulk-status{ text-align:left; }
+  .lockbar{background:#FBF3E7;border:1px solid #E7D3AE;color:#7A5A1E;border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px}
+  .coach-card{border-left:4px solid var(--teal)}
+  .coach-list{list-style:none;margin:0;padding:0 20px 18px}
+  .coach-list li{position:relative;padding:10px 0 10px 20px;font-size:13.5px;line-height:1.6;color:var(--ink-2);border-top:1px solid #F0F2F3}
+  .coach-list li:first-child{border-top:0}
+  .coach-list li::before{content:'';position:absolute;left:2px;top:16px;width:7px;height:7px;border-radius:50%;background:var(--teal)}
+  .coach-list li b{color:var(--ink)}
+  input[type=text],input[type=number],input[type=date],select,textarea{width:100%;border:1px solid var(--line-2);border-radius:var(--radius-s);
+    padding:10px 12px;font-family:inherit;font-size:15px;color:var(--ink);background:#fff;transition:.15s}
+  input:focus,select:focus,textarea:focus{outline:0;border-color:var(--teal-deep);box-shadow:0 0 0 3px rgba(0,180,151,.18)}
+  input[readonly]{background:#F0F2F3;color:var(--ink-2);border-style:dashed}
+  textarea{resize:vertical;min-height:74px;line-height:1.5}
+  .info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .info-grid.three{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:640px){.info-grid,.info-grid.three{grid-template-columns:1fr}}
+  .fldwrap{margin-bottom:16px}
+
+  .btn{border:0;border-radius:9px;padding:12px 20px;font-weight:600;font-size:15px;transition:.15s}
+  .btn-primary{background:var(--teal);color:#fff}
+  .btn-primary:hover{background:var(--teal-deep)}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-danger:hover{opacity:.9}
+  .btn.sm{padding:8px 14px;font-size:13px;border-radius:8px}
+  .btn-mini-primary{background:var(--teal);color:#fff;border:0;border-radius:8px;padding:9px 16px;font-weight:600;font-size:14px;display:inline-block}
+  .btn-mini-primary:hover{background:var(--teal-deep)}
+  .mini{border:1px solid var(--line-2);background:#fff;border-radius:7px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--ink-2)}
+  .mini:hover{background:#F4F6F8}
+  .row-act{border:0;background:transparent;color:var(--muted);padding:5px 8px;border-radius:6px;font-size:13px;font-weight:600}
+  .row-act:hover{color:var(--teal)}
+  .row-act.del:hover{color:var(--danger)}
+
+  .mov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px}
+  .mov{border:1px solid var(--line);border-radius:11px;padding:14px 15px 13px;cursor:pointer;background:#fff;transition:.14s;border-left:4px solid var(--mc,#ccc)}
+  .mov:hover{border-color:var(--line-2);box-shadow:0 3px 12px rgba(16,40,40,.07)}
+  .mov.sel{box-shadow:0 0 0 2px var(--mc) inset;border-left-color:var(--mc)}
+  .mov .mno{font-family:'Space Grotesk';font-weight:700;font-size:22px;color:var(--mc);line-height:1}
+  .mov .mnm{font-family:'Space Grotesk';font-weight:600;font-size:15px;margin:3px 0 7px}
+  .mov .mdesc{font-size:12px;color:var(--muted);line-height:1.45}
+  .mov .macc{margin-top:8px;font-size:11.5px;color:var(--ink-2)}
+  .mov .macc b{color:var(--mc)}
+
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 11px;border-radius:20px;white-space:nowrap}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.03em}
+  .pill.pendiente{background:var(--warnbg);color:var(--warn)}
+  .pill.aprobado{background:var(--okbg);color:var(--ok)}
+  .pill.rechazado{background:var(--dangerbg);color:var(--danger)}
+  .pill.sinasignar{background:#F0F2F3;color:var(--muted)}
+
+  table{width:100%;border-collapse:collapse;background:#fff}
+  .table-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .table-card .th-row{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
+  .table-card h3{font-family:'Space Grotesk';font-size:16px;margin:0;font-weight:600}
+  .table-card .actions{margin-left:auto;display:flex;gap:8px}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:11px 16px;border-bottom:1px solid var(--line);font-weight:600;background:#FAFBFC}
+  td{padding:11px 16px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover td{background:#FAFBFC}
+  .code{font-family:'Space Grotesk';font-size:13px;color:var(--ink-2)}
+
+  .avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;background:#EEF0F1;display:grid;place-items:center;
+    font-family:'Space Grotesk';font-weight:700;color:var(--muted);font-size:15px;overflow:hidden;border:2px solid var(--line)}
+  .avatar.t{border-color:var(--teal)}
+  .avatar.sm{width:40px;height:40px;font-size:14px}
+  .avatar.lg{width:64px;height:64px;font-size:20px}
+  .avatar.xl{width:92px;height:92px;font-size:30px}
+  .personcell{display:flex;align-items:center;gap:11px}
+  .personcell .who b{display:block;font-size:14px}
+  .personcell .who span{font-size:12px;color:var(--muted)}
+
+  .empty{padding:48px 20px;text-align:center;color:var(--muted)}
+  .empty .big{font-family:'Space Grotesk';font-size:18px;color:var(--ink-2);font-weight:600;margin-bottom:6px}
+
+  .metrics{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:22px}
+  @media(max-width:900px){.metrics{grid-template-columns:repeat(4,1fr)}}
+  @media(max-width:520px){.metrics{grid-template-columns:repeat(2,1fr)}}
+  .metric{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:15px 14px;border-top:3px solid var(--mc,var(--teal))}
+  .metric .v{font-family:'Space Grotesk';font-weight:700;font-size:30px;line-height:1;color:var(--mc,var(--ink))}
+  .metric .l{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.25}
+
+  .people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:14px}
+  .person{display:flex;flex-direction:column;align-items:center;text-align:center;border:1px solid var(--line);
+    border-radius:var(--radius);padding:16px 12px;background:#fff;cursor:pointer;transition:.14s}
+  .person:hover{border-color:var(--teal);box-shadow:0 4px 14px rgba(0,180,151,.12);transform:translateY(-2px)}
+  .person .pname{font-weight:600;font-size:14px;margin-top:10px;line-height:1.25}
+  .person .pmeta{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .person .badge{margin-top:9px}
+  .person .pperiodo{font-family:'Space Grotesk';font-size:11px;color:var(--muted);margin-top:5px}
+
+  .photo-slot{flex:none;width:84px;height:84px;border-radius:12px;border:2px dashed var(--line-2);
+    display:grid;place-items:center;cursor:pointer;overflow:hidden;background:#FAFBFC;color:var(--muted);font-size:12px;font-weight:600;transition:.14s;text-align:center;padding:6px}
+  .photo-slot:hover{border-color:var(--teal);color:var(--teal)}
+  .photo-slot img{width:100%;height:100%;object-fit:cover}
+
+  .summary-num{font-family:'Space Grotesk';font-weight:700;font-size:30px;line-height:1}
+  .summary-lbl{font-size:12px;color:var(--muted)}
+
+  .person.sel{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal) inset}
+
+  /* ---- Ficha del colaborador (colores corporativos) ---- */
+  .ficha-head{background:linear-gradient(135deg,#0E3A33 0%,#00735E 55%,#00B497 100%);color:#fff;padding:22px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .ficha-head .avatar{border:3px solid rgba(255,255,255,.75);background:rgba(255,255,255,.18);color:#fff}
+  .ficha-id{flex:1;min-width:180px}
+  .ficha-id h3{margin:0;font-family:'Space Grotesk';font-size:23px;line-height:1.1;color:#fff}
+  .ficha-id .sub{font-size:13px;color:#fff;opacity:.92;margin-top:4px}
+  .ficha-id .meta{font-size:12px;color:#fff;opacity:.78;margin-top:3px}
+  .ficha-hero{text-align:center;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.28);border-radius:14px;padding:10px 16px;min-width:96px}
+  .ficha-hero .num{font-family:'Space Grotesk';font-weight:700;font-size:32px;line-height:1;color:#fff}
+  .ficha-hero .tier{font-size:11px;font-weight:600;margin-top:3px;color:#fff;opacity:.95}
+  .ficha-body{padding:22px 24px}
+  .ficha-data{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #E6EEEC;border-radius:12px;overflow:hidden;margin-bottom:20px}
+  @media(max-width:560px){.ficha-data{grid-template-columns:1fr}}
+  .ficha-data .drow{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;font-size:13px;border-bottom:1px solid #EEF3F2}
+  .ficha-data .drow:nth-child(odd){border-right:1px solid #EEF3F2}
+  .ficha-data .drow .k{color:var(--muted);font-weight:600}
+  .ficha-data .drow .v{color:var(--ink);font-weight:600;text-align:right}
+
+  .mov-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:560px){.mov-strip{grid-template-columns:repeat(2,1fr)}}
+  .mov-chip{border:1px solid var(--line);border-left:4px solid var(--mc);border-radius:10px;padding:11px 12px}
+  .mov-chip .mc-per{font-family:'Space Grotesk';font-size:11px;color:var(--muted);font-weight:600}
+  .mov-chip .mc-no{font-family:'Space Grotesk';font-weight:700;font-size:22px;color:var(--mc);line-height:1;margin:2px 0}
+  .mov-chip .mc-nm{font-size:12px;font-weight:600;color:var(--ink-2);line-height:1.25}
+
+  /* ---- toolbar profesional ---- */
+  .toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  .tb-title{font-family:'Space Grotesk';font-size:23px;margin:0;font-weight:700}
+  .tb-sub{font-size:13px;color:var(--muted);margin:4px 0 0}
+  .tb-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .btn-back{border:1px solid var(--line-2);background:#fff;color:var(--ink-2);border-radius:8px;padding:9px 15px;font-weight:600;font-size:13px}
+  .btn-back:hover{background:#F4F6F8;border-color:var(--teal)}
+
+  /* ---- tarjetas de roster (lista coordinador) ---- */
+  .roster-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+  .rcard{display:flex;align-items:flex-start;gap:14px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;transition:.14s;font-family:inherit}
+  .rcard:hover{border-color:var(--teal);box-shadow:0 5px 16px rgba(0,180,151,.12);transform:translateY(-1px)}
+  .rcard .avatar{flex:none}
+  .rcard .rc-info{flex:1;min-width:0}
+  .rcard .rc-name{font-weight:600;font-size:14.5px;color:var(--ink);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rcard .rc-meta{font-size:12px;color:var(--muted);margin-top:2px}
+  .rcard .rc-badges{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:9px}
+  .rcard .rc-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .rcard .rc-lbl:not(:first-child){margin-left:4px}
+
+  /* ---- selector de movilidad claro ---- */
+  .mov-summary{border:1.5px dashed var(--line-2);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:14px;min-height:64px}
+  .mov-summary.has{border-style:solid;border-color:var(--mc);border-left-width:5px}
+  .mov-summary .ms-no{font-family:'Space Grotesk';font-weight:700;font-size:30px;color:var(--mc);line-height:1}
+  .mov-summary .ms-txt{flex:1}
+  .mov-summary .ms-nm{font-family:'Space Grotesk';font-weight:700;font-size:17px;color:var(--ink)}
+  .mov-summary .ms-acc{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+  .mov-summary .ms-tag{background:var(--mc);color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:5px 11px;border-radius:20px}
+  .mov-summary .ms-empty{color:var(--muted);font-size:14px}
+  .mov-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media(max-width:620px){.mov-list{grid-template-columns:1fr}}
+  .mopt{display:flex;align-items:center;gap:12px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 13px;cursor:pointer;font-family:inherit;transition:.13s;border-left:4px solid transparent}
+  .mopt:hover{border-color:var(--line-2);background:#FAFBFC}
+  .mopt .mopt-no{font-family:'Space Grotesk';font-weight:700;font-size:17px;color:var(--mc);width:26px;flex:none}
+  .mopt .mopt-body{flex:1;min-width:0}
+  .mopt .mopt-nm{display:block;font-weight:600;font-size:14px;color:var(--ink)}
+  .mopt .mopt-acc{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+  .mopt .mopt-check{flex:none;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line-2);color:transparent;display:grid;place-items:center;font-size:13px;font-weight:700}
+  .mopt.sel{border-color:var(--mc);border-left-color:var(--mc);background:color-mix(in srgb,var(--mc) 9%,#fff);box-shadow:0 0 0 1px var(--mc) inset}
+  .mopt.sel .mopt-check{background:var(--mc);border-color:var(--mc);color:#fff}
+  .mopt.sel .mopt-nm{color:var(--mc)}
+
+  /* ---- dashboard 9-box ---- */
+  .ninebox{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+  @media(max-width:860px){.ninebox{grid-template-columns:1fr}}
+  .nb-col-h{font-family:'Space Grotesk';font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#fff;padding:9px 12px;border-radius:9px 9px 0 0;text-align:center}
+  .nb-col-h.nb-salida{background:#A33A30}
+  .nb-col-h.nb-estable{background:#2FA98E}
+  .nb-col-h.nb-alto{background:#00735E}
+  .nb-cells{display:flex;flex-direction:column;gap:10px;padding:10px;background:#F4F6F7;border:1px solid var(--line);border-top:0;border-radius:0 0 9px 9px}
+  .nb-cell{border:1px solid var(--line);border-left:4px solid var(--mc);border-radius:9px;padding:11px 12px;background:#fff}
+  .nb-cell-h{display:flex;align-items:center;gap:8px}
+  .nb-cell-h .nb-no{font-family:'Space Grotesk';font-weight:700;font-size:15px;color:var(--mc)}
+  .nb-cell-h .nb-nm{font-weight:600;font-size:13.5px;flex:1}
+  .nb-cell-h .nb-ct{font-family:'Space Grotesk';font-weight:700;font-size:18px;color:var(--mc)}
+  .nb-people{display:flex;flex-wrap:wrap;gap:4px;margin:9px 0 6px;min-height:26px;align-items:center}
+  .nb-face{border:0;background:transparent;padding:0;cursor:pointer;border-radius:50%;transition:.12s}
+  .nb-face:hover{transform:scale(1.12)}
+  .nb-face .avatar{width:34px;height:34px;font-size:12px;border-width:2px}
+  .nb-more{font-size:11px;font-weight:700;color:var(--muted);align-self:center}
+  .nb-empty{font-size:12px;color:var(--muted)}
+  .nb-acc{font-size:11px;color:var(--muted)}
+
+  /* ---- matriz departamento × tipo ---- */
+  table.matrix{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+  table.matrix th{text-align:center;font-size:11px;color:var(--muted);padding:10px 8px;border-bottom:1px solid var(--line);background:#FAFBFC;font-weight:700}
+  table.matrix th:first-child{text-align:left}
+  table.matrix td{text-align:center;padding:8px;border-bottom:1px solid var(--line)}
+  table.matrix .mx-dep{text-align:left;font-weight:600}
+  table.matrix .mx-area{text-align:left;color:var(--ink-2);font-size:12.5px}
+  table.matrix .mx-cell{font-family:'Space Grotesk';font-weight:700}
+  table.matrix .mx-tot{font-family:'Space Grotesk';font-weight:700;color:var(--teal-deep)}
+  table.matrix .mx-foot td{font-family:'Space Grotesk';font-weight:700;background:#FAFBFC;border-top:2px solid var(--line)}
+  table.matrix .mx-foot td:first-child{text-align:left;color:var(--muted);font-family:'Inter'}
+
+  /* current vs previous in comité ficha */
+  .fx-mov{display:flex;align-items:stretch;gap:12px;margin-top:4px}
+  .fx-mov-box{flex:1;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:#fff}
+  .fx-mov-k{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:7px}
+  .fx-mov-v{margin-bottom:4px}
+  .fx-mov-acc{font-size:12px;color:var(--ink-2)}
+  .fx-mov-arrow{align-self:center;color:var(--muted);font-size:20px;font-weight:700}
+  @media(max-width:520px){.fx-mov{flex-direction:column}.fx-mov-arrow{transform:rotate(90deg)}}
+  .fx-comite{margin-top:20px;padding-top:16px;border-top:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .fx-comite .btn{margin-left:auto}
+  .comite-seal{display:inline-flex;align-items:center;gap:8px;background:var(--okbg);color:var(--ok);border:1px solid #BFE6DD;border-radius:9px;padding:9px 14px;font-weight:700;font-size:13px}
+
+  /* sello aprobado en las caras del 9-box */
+  .nb-face{position:relative}
+  .nb-face.closed:after{content:"✓";position:absolute;right:-2px;bottom:-2px;width:14px;height:14px;background:var(--ok);color:#fff;border:2px solid #fff;border-radius:50%;font-size:8px;font-weight:700;display:grid;place-items:center}
+
+  /* barras apiladas comparativas (departamento / área) */
+  .stk-legend{display:flex;flex-wrap:wrap;gap:12px;padding:14px 20px 4px}
+  .stk-legend span{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2)}
+  .stk-legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .stk-wrap{padding:12px 20px 18px}
+  .stk-group{margin-bottom:16px}
+  .stk-gh{font-family:'Space Grotesk';font-weight:700;font-size:13px;color:var(--teal-deep);margin:0 0 8px;display:flex;align-items:baseline;gap:8px}
+  .stk-gh span{font-size:11.5px;color:var(--muted);font-weight:400}
+  .stk-row{display:flex;align-items:center;gap:12px;margin-bottom:9px}
+  .stk-lbl{width:150px;flex:none;font-size:13px;color:var(--ink-2);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stk-track{flex:1;min-width:0;display:flex;height:26px;border-radius:7px;overflow:hidden;background:#EEF2F1}
+  .stk-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11.5px;font-weight:700;min-width:0}
+  .stk-n{width:30px;flex:none;text-align:right;font-family:'Space Grotesk';font-weight:700;font-size:13px;color:var(--ink)}
+  @media(max-width:600px){.stk-lbl{width:96px}}
+
+  /* repositorio */
+  .repo-folder{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:14px;overflow:hidden}
+  .rf-head{display:flex;align-items:center;gap:12px;padding:14px 18px 6px}
+  .rf-ico{font-size:18px}
+  .rf-per{font-family:'Space Grotesk';font-weight:700;font-size:16px}
+  .rf-count{font-size:12.5px;color:var(--muted)}
+  .rf-acts{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 12px;border-bottom:1px solid var(--line)}
+  .rf-acts button{padding:8px 12px;font-size:12.5px}
+  .rf-body{padding:6px 0}
+  .rf-file{display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid #F0F2F3}
+  .rf-file:last-child{border-bottom:0}
+  .rf-file-info{flex:1;min-width:0}
+  .rf-file-name{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rf-file-meta{font-size:11.5px;color:var(--muted)}
+  .rf-file .mini{padding:6px 11px;font-size:12px}
+  /* overlay de carga */
+  #busyOv{position:fixed;inset:0;background:rgba(26,26,26,.28);backdrop-filter:blur(1px);z-index:9999;display:none;align-items:center;justify-content:center}
+  #busyOv.show{display:flex}
+  #busyOv .busy-box{background:#fff;border-radius:14px;padding:22px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+  #busyOv .busy-spin{width:34px;height:34px;border:3px solid #E4E6E8;border-top-color:var(--teal);border-radius:50%;animation:busyspin .8s linear infinite}
+  #busyOv span{font-size:13px;font-weight:600;color:var(--ink-2)}
+  @keyframes busyspin{to{transform:rotate(360deg)}}
+  /* indicador de estado del jefe (pre-comité) */
+  .rdy{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:20px;white-space:nowrap}
+  .rdy i{width:7px;height:7px;border-radius:50%;display:inline-block}
+  .rdy-lista{background:#E7F5F1;color:#00735E}.rdy-lista i{background:#00B497}
+  .rdy-aprobado{background:#E7F5F1;color:#00735E}.rdy-aprobado i{background:#00735E}
+  .rdy-proceso{background:#FBF1E4;color:#9A6B12}.rdy-proceso i{background:#E0A43B}
+  .rdy-rechazado{background:#F7E7E4;color:#A33A30}.rdy-rechazado i{background:#A33A30}
+  .rdy-sin{background:#EEF0F1;color:#6B7278}.rdy-sin i{background:#AEB4B9}
+  .danger-zone{border:1px solid #E4B4AE;background:#FCF6F5}
+  /* guía de carga ERP */
+  .erp-guide{background:#F4F8F7;border:1px solid #DCEAE7;border-radius:10px;padding:12px 14px;margin:4px 0 4px}
+  .erp-step{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--ink-2);margin:7px 0;line-height:1.5}
+  .erp-step>div{flex:1;text-align:left}
+  .erp-cols{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px 28px}
+  .erp-n{flex:none;width:19px;height:19px;border-radius:50%;background:var(--teal);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;margin-top:1px}
+  /* avance por área */
+  .prog-track-all{height:10px;border-radius:6px;background:#EEF2F1;overflow:hidden}
+  .prog-fill-all{height:100%;background:var(--teal);border-radius:6px}
+  .prog-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .prog-lbl{width:190px;flex:none;font-size:13px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .prog-track{flex:1;min-width:0;height:16px;border-radius:6px;background:#EEF2F1;position:relative;overflow:hidden}
+  .prog-fill{position:absolute;left:0;top:0;height:100%;background:var(--teal);opacity:.5}
+  .prog-fill-ap{position:absolute;left:0;top:0;height:100%;background:var(--ok)}
+  .prog-n{width:56px;flex:none;text-align:right;font-family:'Space Grotesk';font-weight:700;font-size:13px}
+  .prog-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
+  .prog-legend span{display:inline-flex;align-items:center;gap:6px}
+  .prog-legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  @media(max-width:600px){.prog-lbl{width:110px}}
+
+  code{background:#F0F2F3;padding:2px 6px;border-radius:5px;font-size:12.5px;color:var(--ink-2)}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(20,26,30,.55);display:none;align-items:flex-start;justify-content:center;z-index:90;padding:34px 16px;overflow:auto}
+  .modal-overlay.show{display:flex}
+  .modal{background:#fff;border-radius:16px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+  .fx-head{position:relative;background:linear-gradient(135deg,#0E3A33 0%,#00735E 55%,#00B497 100%);color:#fff;padding:24px 26px}
+  .fx-head .fclose{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.2);border:0;color:#fff;width:34px;height:34px;border-radius:9px;font-size:18px;cursor:pointer}
+  .fx-head .fclose:hover{background:rgba(255,255,255,.32)}
+  .fx-top{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .fx-head .avatar{border:3px solid rgba(255,255,255,.75);background:rgba(255,255,255,.18);color:#fff}
+  .fx-id h3{margin:0;font-family:'Space Grotesk';font-size:24px;line-height:1.1;color:#fff}
+  .fx-id .sub{font-size:13px;color:#fff;opacity:.9;margin-top:4px}
+  .fx-hero{margin-left:auto;text-align:center;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.28);border-radius:14px;padding:11px 16px;min-width:120px}
+  .fx-hero .num{font-family:'Space Grotesk';font-weight:700;font-size:34px;line-height:1;color:#fff}
+  .fx-hero .tier{font-size:11.5px;font-weight:600;margin-top:3px;color:#fff;opacity:.95}
+  .fx-body{padding:22px 26px}
+  .sec{font-family:'Space Grotesk';font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--teal-deep);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .sec:before{content:"";width:14px;height:2px;background:var(--teal);border-radius:2px}
+  .timeline{border-left:2px solid var(--line);margin-left:6px;padding-left:16px}
+  .timeline .item{margin-bottom:15px;position:relative}
+  .timeline .item:before{content:'';position:absolute;left:-21px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--teal)}
+  .timeline .item .p{font-family:'Space Grotesk';font-size:11px;color:var(--muted);margin-bottom:3px}
+  .timeline .item .cmt{font-size:12.5px;color:var(--ink-2);margin-top:4px}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:10px;font-size:14px;font-weight:500;z-index:120;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .muted{color:var(--muted)}
+  .bulk-status{font-size:12px;color:var(--muted);margin-top:8px}
+  .scope-banner{display:none;align-items:center;gap:14px;background:var(--teal-deep);color:#fff;padding:10px 24px;font-size:14px}
+  .scope-banner button{margin-left:auto;background:#fff;color:var(--teal-deep);border:0;border-radius:7px;padding:7px 14px;font-weight:600;font-size:13px;cursor:pointer}
+  .clink{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+  .clink .cn{font-weight:600;font-size:13.5px}
+  .clink .cc{font-size:11.5px;color:var(--muted);margin-bottom:6px}
+  .clink input{font-size:11.5px;padding:6px 8px;margin-bottom:6px}
+  .clink .lbtns{display:flex;gap:6px;flex-wrap:wrap}
+  .clink .lbtns button{padding:6px 10px;font-size:12px}
+  #emailBody{width:100%;height:250px;font-family:inherit;font-size:13px}
+  /* envíos de correo compactos */
+  .mail-block{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .mail-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #F0F2F3}
+  .mail-row:last-child{border-bottom:0}
+  .mail-row>div:first-child{flex:1;min-width:180px;font-size:13.5px}
+  .mail-acts{display:flex;gap:8px;flex-wrap:wrap}
+  .mail-acts button{padding:8px 12px;font-size:12.5px}
+  .mail-indiv{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .mail-indiv select{flex:1;min-width:220px}
+  .mail-indiv button{white-space:nowrap}
+  .mail-row-focus{background:#EAF7F3;box-shadow:inset 3px 0 0 var(--teal)}
+  /* candado de acceso */
+  .lockwrap{display:flex;justify-content:center;padding:60px 16px}
+  .lockcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:36px 32px;max-width:420px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.06)}
+  .lock-ico{font-size:34px;margin-bottom:8px}
+  .lockcard h3{font-family:'Space Grotesk';font-size:20px;margin:0 0 8px}
+  .lockcard p{font-size:13.5px;color:var(--muted);margin:0 0 16px;line-height:1.5}
+  .lockcard input{width:100%;text-align:center;font-size:18px;letter-spacing:3px;padding:12px}
+  .lock-hint{font-size:12px !important;color:var(--muted);margin-top:14px !important;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="app-inner">
+    <div class="logo">
+      <span class="mark"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAB5ANkDASIAAhEBAxEB/8QAHAABAAMBAQEBAQAAAAAAAAAAAAcICQUGBAED/8QASRAAAAQDAgUNDgYABwAAAAAAAAECAwQFBgcRCBg3VrISITE1UVV0dZOUs9HSExQVMjZBcXJzkZKVseMJFhciYYEkUoKhosHC/8QAHAEBAQEAAwEBAQAAAAAAAAAAAAECAwQFBwgG/8QAMBEBAAEDAQMJCQEBAAAAAAAAAAECAxExBFGRBRITFBYXU7HRBiEiMjM0NXFyQYH/2gAMAwEAAhEDEQA/ALlgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPknMygZNKomazOJbhYOFbN151Z3EhJbJj6xXzDqnr0usugZQw4pvwpHETlx+MhtOqNPovNJ/0BDzFaYXkMxGuw9J0x30wkzJMVGvGjVfySElfd6THkF4XNemozRI6fSnzEbbp/+xXZJXmRbospB4ItRxMGzEpq6VJJ1tKyI2HNa8rxG8RD4sbiv95ae5J3thjcV/vLT3JO9sdPE+qXO+U8g4GJ9Uud8p5BwD4XMxuK/wB5ae5J3thjcV/vLT3JO9sdPE+qXO+U8g4GJ9Uud8p5BwD4XMxuK/3lp7kne2PpgcLys23SOMpySPo86WzcbP3mox9WJ9Uud8p5BweBtssMm1l0hg5tHzyCmCImI7gSGW1JNJ3X364HuWcsVwh6atCmbcjjINySTlwjNplxwltPGWySF62v/BkQmoZV09MX5RPYGaQrimnoSIQ8hSTuMjSoj/6GpEkjCmEng45OxEMIcL+0kYJMYeatpqqOomzSb1PLmGH4qCQhTbb5GaDvWlOvcZHsGKs43NdbwyH4He2LDYVmQSpvZN9KgZ2hJTDSuwqsZhXlmUtqeZw8PDxUUp0ltsEZILUuKSV15mewQ9wIiwPsgMh9eI6ZYl0VlG9tFsVMWYQzTcyJ2NmcQk1MQLBlqzT/AJlGeslN4r5NcL6qHXTOWUtKYZvzE86t0/8AbUiK8JCevVBbNUUU46paGYo4ZojPxUN/tIi9w8rSNPPVFGPQzMQ2wbTZLM1kZ33nd5giJqnEMbRftbNam9dnFMaym7G4r/eWnuSd7YY3Ff7y09yTvbEbfphH76Q3wKD9MI/fSG+BQ5egubnjdqOSPGjhPoknG4r/AHlp7kne2GNxX+8tPck72xG36YR++kN8Cg/TCP30hvgUHQXNx2o5I8aOE+iScbiv95ae5J3tj9LC4r+/XklP3eyd7YjX9MI/fSG+BQfphH76Q3wKDoLm47UckeNHCfRNFOYYExTEIRUNIwzjBn+9yCfNKyL+EqvI/eQs3Z9WMirqmmJ/T8V3eFd1lJUVy2llspUXmMhmPOIJUtmkTALWlxTDhoNSS1juFlcAOevNVLP6dU4o2IiGTFIRfrEtJ6lR+kyNPuHFpOJe5TVTcoiunSfeuIAAACrf4g20NI8KidFsWkFW/wAQbaGkeFROi2ErGqoKPHT6RqrIdo4DgzeiQyqR46fSNVZDtHAcGb0SEhan2gACsgAAAK4YfGTuS8YnoGLHiuGHxk7kvGJ6BhKxqpWQ1Gs+8hZFxezoEMuSGo1nvkJIuL2dAhIaqeLwrMglTeyb6VAztGiWFZkEqb2TfSoGdoSU6NBsD7IDIfXiOmWJdERYH2QGQ+vEdMsS6KxLMG1TKTUfGT+mY69i+3cfwdOkY5FqeUmo+Mn9Mx17F9u4/g6dIxyWPqQ8b2n/ABN/9R5wlQAAes+FgAAABbIAWyAgetvK6acJV9RM+Allhi+KXdNsQxW3ldNOEq+omfASyxRfFLum2PGr+aX6F2D7O1/NPlC8gAAjsAq3+INtDSPConRbFpBVv8QbaGkeFROi2ErGqoKPHT6RqrIdo4DgzeiQyqR46fSNVZDtHAcGb0SEhan2gACsgAAAK4YfGTuS8YnoGLHiuGHxk7kvGJ6BhKxqpWQ1Gs98hJFxezoEMuSGo1nvkJIuL2dAhIaqeLwrMglTeyb6VAztGiWFZkEqb2TfSoGdoSU6NBsD7IDIfXiOmWJdERYH2QGQ+vEdMsS6KxLMG1PKTUfGT+mY69i+3cfwdOkY5FqeUmo+Mn9Mx17F9u4/g6dIxyWPqQ8b2n/E3/1HnCVAAB6z4WAAAAFsgBbICB628rppwlX1Ez4CWWKL4pd02xDFbeV004Sr6iZ8BLLFF8Uu6bY8av5pfoXYPs7X80+ULyAACOwCr34gja1U5SjpF+xEXEEo9wzQi76GLQiIsLKiY2tLKH25Wwp+YS14oxlpBXqcSRGS0kW7cd/+kFjVn0jx0+karSLaSA4M3okMqlpW2s0LSpC0ncZGVxkY7aaxq5CSSmqZ2lKSuIij3biL4hGpjLUYBl1+c6wzqnnP3e0H5zrDOqec/d7QZTmtRQGXX5zrDOqec/d7QfnOsM6p5z93tBk5rUUVww+Mncl4xPQMVJ/OdYZ1Tzn7vaHxzWfz2bMpZmk5mMc0g9UlERErcSR7pEozDKxS5xEZmRFsjUegkKboiSNqK5SYBkj+AhnTY3RUzruvZdJpfDOOMk8lyLdJN6WWiO9SlH5tbWLdMxpbDMoh4ZphsiJDaCQki3CK4ISpGWFZkEqb2TfSoGdo0SwrMglTeyb6VAztCVp0aDYH2QGQ+vEdMsS6IiwPsgMh9eI6ZYl0ViWYdrCFN2m1IhZGSimb95H65jq2LEZzuPuK/wDw6dIx7DDBoeYU3ajGTwoVzwVOVd3ZfSn9hOGX70GfmMj17twxDENEREMo1Qz7rKjK4zbWaTMv6Ft1cyqKnT5V2Kdv2O5s9M4mqMZ/7ErGalW4fuDUq3D9wr14Vmm+Uby6usPCs03yjeXV1judcjc/ge7+948cJ9VhdSrcP3BqVbh+4V68KzTfKN5dXWHhWab5RvLq6w65G47v73jxwn1WF1Ktw/cBJVfsH7hXrwrNN8o3l1dYeFZpvlG8urrDrkbju/vePHCfV9lbeV004Sr6iacBFtZ2uxrhF+1MpdIz3L1ou+ggBxa3XFOOrUtajvUpR3mZ/wAmLkYDFCTCTyWZ1hNIZyHOZpQzBocTco2kmZmsvPcZn/d146Uzmcvo9i10Nii3M5xERwhZkAAGwAAB4urbKrPKqilRc9pOXRMSo71PJQbTij3VKQZGZ+keWVg32RqUZlTrqb/MUY7cX/IS6AGUQ4t1kmb73PHesMW6yTN97njvWJeAFzKIcW6yTN97njvWGLdZJm+9zx3rEvABmUQ4t1kmb73PHesf3g8HeyOGXqzpZL5+YnYp0y92qErgBmXLpqnZDTUCUDIJRBSyH86IZkkao907tk/5MdQABEXYVmQSpvZN9KgZ2jRLCsyCVN7JvpUDO0SW6dGg2B9kBkPrxHTLEuiIsD7IDIfXiOmWJdFYl8s1lsvm0C5AzSBho6Fc1lsxDROIV6SPWEcTLB+skjnFOKpFhhajvM2H3EF7iVcXuEogAiHFuskzfe5471hi3WSZvvc8d6xLwAuZRDi3WSZvvc8d6wxbrJM33ueO9Yl4AMyiHFuskzfe5471hi3WSZvPc8d6xLwAZlH1PWK2XSGKRFQFHS830a6VxGqfuPduWZlf/QkBKSSkkpIiIiuIi8w/QBAAAAAAAAAAAAAAAAAAAAAAABF2FZkEqb2TfSoGdo06tXpI66oGZ0sUd3j38hKe79z7pqLlErxbyv2N0V1xOVZ+l8s+4JLVMxCEqOtptIpGn4eQU/PyhJdDmo2mu9GV6nVGaj11JMz1zPzjr4x1sOdaeYQ/YErYnKs/S+WfcDE5Vn6Xyz7gLmEU4x1sOdaeYQ/YDGOthzrTzCH7AlbE5Vn6Xyz7gYnKs/S+WfcAzCKcY62HOtPMIfsBjHWw51p5hD9gSticqz9L5Z9wMTlWfpfLPuAZhxLALb7TKptekEgnlQlFS6LdcS+13myjVETS1FrpQRlrkWwYucK6WU4MqqGtAlVVfnAo7weta+9+8NRq9UhSfG1Z3eNfsCxYrM4/wAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB//2Q==" alt="OLO"></span>
+      <span class="divider"></span>
+      <span class="txt"><small>Gestión de talento</small><b>Movilidad de Colaboradores</b></span>
+    </div>
+    <nav class="tabs">
+      <button class="tab active" data-tab="coordinador">Jefe inmediato</button>
+      <button class="tab" data-tab="gerente">Pre-comité</button>
+      <button class="tab" data-tab="comite">Comité</button>
+      <button class="tab" data-tab="repo">Repositorio</button>
+      <button class="tab" data-tab="admin">Administrador</button>
+    </nav>
+  </div>
+</header>
+<div class="scope-banner" id="scopeBanner"><span id="scopeText"></span><button onclick="exitScope()">Volver a administrador</button></div>
+<main id="views"><div style="padding:60px 20px;text-align:center;color:#6B7278;font-family:Inter,system-ui,sans-serif">Cargando la aplicación…</div></main>
+<noscript><div style="padding:40px;text-align:center;font-family:sans-serif;color:#A33A30">Esta aplicación necesita JavaScript. Si la ves dentro de una vista previa restringida, descarga el archivo y ábrelo directamente en tu navegador.</div></noscript>
+<div class="modal-overlay" id="modalOverlay"><div class="modal" id="modalBox"></div></div>
+<div id="toastRoot"></div>
+
+<script>
+/* ============ persistence (mismo patrón que los desarrollos OLO) ============ */
+
+/* ====== CONFIGURACIÓN SUPABASE ======
+   Tabla propia de este proyecto: olo_movilidad_kv (ver supabase_movilidad_setup.sql).
+   Convive en el mismo proyecto Supabase que el sistema de Evaluación, sin interferir. */
+const SUPABASE_URL      = "https://iigtulgpbqeypnewmzxz.supabase.co";
+const SUPABASE_ANON_KEY  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpZ3R1bGdwYnFleXBuZXdtenh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1MTU3OTgsImV4cCI6MjA5OTA5MTc5OH0.kFqdbOiRKjyNJ5H-vCvNd3SrC7lamYtN3WyIY8rpetU";
+const SB_TABLE = 'olo_movilidad_kv';
+const sb = (SUPABASE_URL && SUPABASE_ANON_KEY && typeof window!=='undefined' && window.supabase)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const USE_SB = !!sb;
+
+const API_BASE = (typeof window!=='undefined' && window.OLO_API_BASE) ? String(window.OLO_API_BASE).replace(/\/$/,'') : "";
+const USE_API = !!API_BASE;
+const hasStore = typeof window!=='undefined' && window.storage && typeof window.storage.get==='function';
+const SHARED = true;
+const mem = {};
+async function apiFetch(path, opts){ const r = await fetch(API_BASE+path, Object.assign({headers:{'Content-Type':'application/json'}}, opts||{})); return r; }
+function withTimeout(promise, ms, fallback){ return Promise.race([ Promise.resolve(promise).catch(()=>fallback), new Promise(res=>setTimeout(()=>res(fallback), ms)) ]); }
+const Store = {
+  async list(prefix){
+    if(USE_SB){ try{ const {data,error}=await sb.from(SB_TABLE).select('key').like('key', prefix+'%').limit(10000); if(error) throw error; return (data||[]).map(r=>r.key); }catch(e){ console.error('sb list',e); return Object.keys(mem).filter(k=>k.startsWith(prefix)); } }
+    if(USE_API){ try{ const r=await apiFetch('/kv?prefix='+encodeURIComponent(prefix)); if(!r.ok) return []; const d=await r.json(); return (d&&d.keys)||[]; }catch(e){ return Object.keys(mem).filter(k=>k.startsWith(prefix)); } }
+    if(hasStore){ try{ const r=await withTimeout(window.storage.list(prefix, SHARED), 6000, null); return (r&&r.keys)||[]; }catch(e){ return []; } }
+    return Object.keys(mem).filter(k=>k.startsWith(prefix));
+  },
+  async get(k){
+    if(USE_SB){ try{ const {data,error}=await sb.from(SB_TABLE).select('value').eq('key',k).maybeSingle(); if(error) throw error; return data?data.value:null; }catch(e){ console.error('sb get',e); return mem[k]?JSON.parse(mem[k]):null; } }
+    if(USE_API){ try{ const r=await apiFetch('/kv/'+encodeURIComponent(k)); if(r.status===404) return null; if(!r.ok) return mem[k]?JSON.parse(mem[k]):null; const d=await r.json(); return (d&&d.value!=null)?JSON.parse(d.value):null; }catch(e){ return mem[k]?JSON.parse(mem[k]):null; } }
+    if(hasStore){ try{ const r=await withTimeout(window.storage.get(k, SHARED), 6000, null); return r?JSON.parse(r.value):(mem[k]?JSON.parse(mem[k]):null); }catch(e){ return null; } }
+    return mem[k]?JSON.parse(mem[k]):null;
+  },
+  async set(k,v){
+    const s=JSON.stringify(v); mem[k]=s;
+    if(USE_SB){ try{ const {error}=await sb.from(SB_TABLE).upsert({key:k, value:v},{onConflict:'key'}); if(error) throw error; }catch(e){ console.error('sb set',e); toast('No se pudo guardar en Supabase (se guardó localmente)'); } return; }
+    if(USE_API){ try{ const r=await apiFetch('/kv/'+encodeURIComponent(k),{method:'PUT',body:JSON.stringify({value:s})}); if(!r.ok) toast('No se pudo guardar en el servidor (se guardó localmente)'); }catch(e){ toast('Sin conexión: se guardó solo localmente'); } return; }
+    if(hasStore){ try{ await window.storage.set(k,s, SHARED); }catch(e){} }
+  },
+  async del(k){
+    delete mem[k];
+    if(USE_SB){ try{ const {error}=await sb.from(SB_TABLE).delete().eq('key',k); if(error) throw error; }catch(e){ console.error('sb del',e); } return; }
+    if(USE_API){ try{ await apiFetch('/kv/'+encodeURIComponent(k),{method:'DELETE'}); }catch(e){} return; }
+    if(hasStore){ try{ await window.storage.delete(k, SHARED); }catch(e){} }
+  }
+};
+if(USE_SB){
+  sb.from(SB_TABLE).select('key',{head:true,count:'exact'}).limit(1).then(({error})=>{
+    if(error){ console.error('Supabase:',error); toast('⚠ Sin conexión con Supabase: revisa el script SQL de olo_movilidad_kv'); }
+    else console.log('✓ Conectado a Supabase ('+SB_TABLE+')');
+  });
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ============ roles vía enlace: #c=coordinador, #g=gerente. Sin hash = administrador ============ */
+function decodeScope(t){ try{ return decodeURIComponent(escape(atob(decodeURIComponent(t)))); }catch(e){ return null; } }
+function encodeScope(n){ return encodeURIComponent(btoa(unescape(encodeURIComponent(n)))); }
+function readScope(){
+  const h=location.hash||''; let m=h.match(/[#&]c=([^&]+)/); if(m) return {role:'coord', name:decodeScope(m[1])};
+  m=h.match(/[#&]g=([^&]+)/); if(m) return {role:'gerente', name:decodeScope(m[1])};
+  return {role:'admin', name:null};
+}
+const SCOPE = readScope();
+let COORD_SCOPE = SCOPE.role==='coord' ? SCOPE.name : null;
+let GER_SCOPE   = SCOPE.role==='gerente' ? SCOPE.name : null;
+let simulated = false;
+function coordLink(name){ return location.origin+location.pathname+'#c='+encodeScope(name); }
+function gerLink(name){ return location.origin+location.pathname+'#g='+encodeScope(name); }
+function copyText(t){
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(()=>toast('Copiado ✓'),()=>fallbackCopy(t)); return; } }catch(e){}
+  fallbackCopy(t);
+}
+function fallbackCopy(t){ try{ const ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Copiado ✓'); }catch(e){ toast('Copia manual del texto'); } }
+function saveBlob(blob, name){
+  let url;
+  try{ url=URL.createObjectURL(blob); }catch(e){ toast('No se pudo generar el archivo.'); return false; }
+  const inIframe = (function(){ try{ return window.self!==window.top; }catch(e){ return true; } })();
+  try{
+    if(inIframe){
+      const win=window.open(url,'_blank');
+      if(!win){ const a=document.createElement('a'); a.href=url; a.download=name; a.target='_blank'; document.body.appendChild(a); a.click(); a.remove(); }
+    } else {
+      const a=document.createElement('a'); a.href=url; a.download=name; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove();
+    }
+    setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(e){} }, 60000);
+    return true;
+  }catch(e){ toast('La descarga fue bloqueada por el entorno. Abre el archivo en el navegador.'); return false; }
+}
+function mailtoFor(to, subject, body, cc){ return 'mailto:'+encodeURIComponent(to||'')+'?'+(cc?('cc='+encodeURIComponent(cc)+'&'):'')+'subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body); }
+/* ---- envío real por Edge Function de Supabase (send-eval-email) ----
+   Remitente: comunicaciones@ologistics.com (configurado en los secrets de la función). */
+async function sendMailNow(to, subject, body, cc){
+  if(!USE_SB) throw new Error('Supabase no configurado');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(to||'').trim())) throw new Error('Correo inválido: '+(to||'(vacío)'));
+  const payload={to:String(to).trim(), subject:subject, body:body};
+  if(cc && /@/.test(cc)) payload.cc=String(cc).trim();
+  const {data,error}=await sb.functions.invoke('send-eval-email',{body:payload});
+  if(error) throw error;
+  if(data && data.error) throw new Error(typeof data.error==='string'?data.error:JSON.stringify(data.error));
+  return true;
+}
+function fmtFechaLimite(iso){
+  if(!iso) return '';
+  const p=String(iso).split('-'); if(p.length!==3) return iso;
+  const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${parseInt(p[2],10)} de ${meses[parseInt(p[1],10)-1]||''} de ${p[0]}`;
+}
+function deadlineTxt(){ const d=(typeof CFG==='object'&&CFG&&CFG.deadline)||''; return d?fmtFechaLimite(d):'la fecha indicada por Recursos Humanos'; }
+async function saveDeadline(v){
+  CFG.deadline=v||''; await Store.set('config', CFG);
+  toast(v?('Fecha límite guardada ✓ '+fmtFechaLimite(v)):'Fecha límite eliminada');
+}
+
+/* ============ criterios aprobados (Anexo SOP04-A2-T4-AN12) ============ */
+const MOVILIDAD = [
+ {id:1, nombre:'Rotación', mc:'#A33A30', bg:'#FBEAE8', criterio:'Resultados por debajo de lo esperado conforme al tiempo de la matriz de crecimiento, incumple las leyes y/o no está identificado con los principios y valores de la empresa.', accion:'Egreso'},
+ {id:2, nombre:'Reubicación', mc:'#8A6D3B', bg:'#F4EFE4', criterio:'Desempeño estándar o decrecido de forma circunstancial, cuyas competencias indican que puede ser transferido para mejorar resultados y evolucionar en su desarrollo.', accion:'Transferencia'},
+ {id:3, nombre:'Cumple con lo esperado', mc:'#4E7D77', bg:'#EAF1F0', criterio:'Cumple con los criterios establecidos en las matrices de crecimiento para su nivel y paso.', accion:'Acompañamiento'},
+ {id:4, nombre:'Dependencia', mc:'#5B6B77', bg:'#EEF1F3', criterio:'Reconocido por su dominio y conocimiento técnico fundamental del negocio, de difícil sustitución en el corto plazo, con resultados dentro de lo esperado.', accion:'Transmisión de conocimientos o automatización de procesos'},
+ {id:5, nombre:'Con Potencial', mc:'#009C82', bg:'#E2F4EF', criterio:'Cumple con los criterios de la matriz de crecimiento, con resultados superiores a lo esperado, en un tiempo menor al establecido.', accion:'Retención'},
+ {id:6, nombre:'Listo para Ascenso', mc:'#00735E', bg:'#D9F2EC', criterio:'Cumple con los criterios de la matriz para ser ascendido.', accion:'Retención y ascenso'},
+ {id:7, nombre:'En Adaptación', mc:'#2563A8', bg:'#E7EEF9', criterio:'Tiene menos de un año en el cargo (nuevo ingreso o ascenso). Tras al menos un año, debe ubicarse en alguno de los tipos anteriores.', accion:'Acompañamiento'}
+];
+function movById(id){ return MOVILIDAD.find(m=>m.id===Number(id)); }
+function currentPeriodo(){ const d=new Date(); return `${d.getFullYear()}-${d.getMonth()<6?'S1':'S2'}`; }
+function periodoOptions(){
+  // desde el semestre actual (según la fecha) hacia los próximos 20 años
+  const cur=parsePeriodo(currentPeriodo()); const out=[];
+  let y=cur.y, s=cur.h;
+  for(let i=0;i<40;i++){ out.push(y+'-S'+s); if(s===1){ s=2; } else { s=1; y++; } }
+  if(adminPeriod && !out.includes(adminPeriod) && /^\d{4}-S[12]$/.test(adminPeriod)) out.unshift(adminPeriod);
+  return out;   // orden cronológico: el actual primero
+}
+function parsePeriodo(p){
+  const s=String(p==null?'':p).toLowerCase();
+  let m=s.match(/(\d{4})\D*s?\s*([12])(?!\d)/); if(m) return {y:+m[1], h:+m[2]};   // 2026-s2 / 2026 s2
+  m=s.match(/([12])\s*s\D*(\d{4})/); if(m) return {y:+m[2], h:+m[1]};              // 2s-2026
+  m=s.match(/s\s*([12])\D*(\d{4})/); if(m) return {y:+m[2], h:+m[1]};              // s2-2026
+  return null;
+}
+function fmtPeriodo(o){ return o.y+'-S'+o.h; }
+function periodPrev(p){ const o=parsePeriodo(p); if(!o) return null; return o.h===2?{y:o.y,h:1}:{y:o.y-1,h:2}; }
+function prevPeriods(p,n){ const out=[]; let cur=parsePeriodo(p); if(!cur) return out; for(let i=0;i<n;i++){ cur=periodPrev(fmtPeriodo(cur)); if(!cur) break; out.push(fmtPeriodo(cur)); } return out; }
+let adminPeriod = currentPeriodo();
+function fmtDate(iso){ if(!iso) return '—'; const d=new Date(iso); return isNaN(d)? iso : d.toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+function initials(name){ return (name||'?').split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function nivelPaso(c){ const n=c&&c.nivel!=null?String(c.nivel).trim():''; const p=c&&c.paso!=null?String(c.paso).trim():''; if(n&&p) return n+'.'+p; return n||p||'—'; }
+function tcase(s){ if(s==null||s==='') return s; const low=new Set(['de','del','la','las','los','y','e','da','do','dos','van','von','di','della']);
+  return String(s).trim().toLowerCase().split(/\s+/).map((w,i)=>{ if(low.has(w)&&i>0) return w; return w.replace(/^[\wáéíóúñü]/, ch=>ch.toUpperCase()); }).join(' '); }
+function normName(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
+function movFromCell(v){
+  if(v==null||v==='') return 0;
+  const s=String(v).trim();
+  let m=s.match(/^m\s*([1-7])$/i); if(m) return +m[1];        // M7, M 3 (código del ERP)
+  if(/^[1-7]$/.test(s)) return +s;                            // "3"
+  const key=normName(s);
+  const mm=MOVILIDAD.find(x=>normName(x.nombre)===key || (key&&key.includes(normName(x.nombre))));
+  if(mm) return mm.id;
+  const any=s.match(/(?:^|[^0-9])([1-7])(?![0-9])/); if(any) return +any[1];   // "Mov 5", "M7"
+  return 0;
+}
+
+/* ============ fechas Excel ============ */
+function normDate(s){
+  if(!s) return ''; s=String(s).trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  const m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if(m){ let[_,d,mo,y]=m; if(y.length===2)y='20'+y; return `${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`; }
+  return s;
+}
+function toDateStr(v){
+  if(v==null||v==='') return '';
+  if(v instanceof Date && !isNaN(v.getTime())) return v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0')+'-'+String(v.getDate()).padStart(2,'0');
+  if(typeof v==='number' && isFinite(v)){ const d=new Date(Math.round((v-25569)*86400000)); if(!isNaN(d.getTime())) return d.toISOString().slice(0,10); }
+  return normDate(String(v));
+}
+
+/* ============ imágenes ============ */
+function compressFile(file){
+  return new Promise(res=>{
+    const fr=new FileReader();
+    fr.onload=()=>{ const raw=fr.result; const img=new Image();
+      img.onload=()=>{ try{ const max=560; let{width:w,height:h}=img; const sc=Math.min(1,max/Math.max(w,h)); w=Math.round(w*sc)||img.width; h=Math.round(h*sc)||img.height;
+        const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); const out=c.toDataURL('image/jpeg',0.72); res(out&&out.length>40?out:raw); }catch(e){ res(raw); } };
+      img.onerror=()=>res(raw); img.src=raw; };
+    fr.onerror=()=>res(''); fr.readAsDataURL(file);
+  });
+}
+
+/* ============ state ============ */
+let DB = { colaboradores:{}, evaluaciones:{}, historico:{} };
+let DIR = { jefes:{}, correos:{} };   // directorio: correos de jefes inmediatos y gerentes de área
+let CFG = { closedPeriods:[] };       // configuración (periodos cerrados). La autenticación la maneja el servidor.
+let ready = false, currentTab = 'coordinador';
+let pendingImport = [], stagedPhoto = null;
+
+async function mapBatched(keys, fn, size=12){
+  const out=[];
+  for(let i=0;i<keys.length;i+=size){ const chunk=keys.slice(i,i+size); const r=await Promise.all(chunk.map(fn)); out.push(...r); }
+  return out;
+}
+async function loadAll(){
+  const [cK,eK,hK] = await Promise.all([Store.list('colaborador:'), Store.list('evaluacion:'), Store.list('historico:')]);
+  const cs = await mapBatched(cK, k=>Store.get(k));
+  const es = await mapBatched(eK, k=>Store.get(k));
+  const hs = await mapBatched(hK, k=>Store.get(k));
+  DB.colaboradores={}; cs.filter(Boolean).forEach(c=>DB.colaboradores[c.id]=c);
+  DB.evaluaciones={}; es.filter(Boolean).forEach(e=>DB.evaluaciones[e.id]=e);
+  DB.historico={}; hs.filter(Boolean).forEach(h=>DB.historico[h.id]=h);
+  const d = await Store.get('directorio'); DIR = d && d.jefes ? d : { jefes:{}, correos:{} };
+  const cfg = await Store.get('config'); CFG = (cfg && typeof cfg==='object') ? cfg : { closedPeriods:[] };
+  if(!Array.isArray(CFG.closedPeriods)) CFG.closedPeriods=[];
+  if(typeof CFG.deadline!=='string') CFG.deadline=CFG.deadline||'';
+  ready=true;
+}
+function emailOf(name){ return (name && DIR.correos[normName(name)]) || ''; }
+// Cierre oficial de periodo: cuando un semestre se cierra, queda en solo-lectura.
+function isPeriodClosed(p){ return Array.isArray(CFG.closedPeriods) && CFG.closedPeriods.includes(p); }
+async function togglePeriodClosed(p){
+  const set=new Set(CFG.closedPeriods||[]);
+  if(set.has(p)) set.delete(p); else set.add(p);
+  CFG.closedPeriods=[...set]; await Store.set('config', CFG);
+}
+function periodLockBanner(p){
+  if(!isPeriodClosed(p)) return '';
+  return `<div class="lockbar">🔒 El periodo <b>${esc(p)}</b> está <b>cerrado</b>. Los datos quedan en solo lectura; para editar, reábrelo desde Administrador.</div>`;
+}
+// Muestra SIEMPRE un nombre. Si el valor guardado es un correo, intenta resolver el nombre
+// desde el directorio (por correo); si no, muestra la parte antes de la @ de forma legible.
+function dispName(v){
+  const s=String(v==null?'':v).trim();
+  if(!s) return '—';
+  if(s.includes('@')){
+    const hit=Object.entries(DIR.correos).find(([k,mail])=>String(mail).toLowerCase()===s.toLowerCase());
+    if(hit){ const j=DIR.jefes[hit[0]]; if(j&&j.nombre) return tcase(j.nombre); }
+    const local=s.split('@')[0].replace(/[._\-]+/g,' ').trim();
+    return local?tcase(local):s;
+  }
+  return tcase(s);
+}
+async function resetAllData(){
+  await withBusy('Borrando datos…', async()=>{
+    const groups = await Promise.all([Store.list('colaborador:'), Store.list('evaluacion:'), Store.list('historico:')]);
+    const keys = [].concat(...groups.map(g=>g||[])); keys.push('directorio');
+    for(const k of keys){ await Store.del(k); }
+    DB={ colaboradores:{}, evaluaciones:{}, historico:{} };
+    DIR={ jefes:{}, correos:{} };
+    comiteMovSel={}; comitePeriod=''; comiteFilterArea=''; gerFilterJefe=''; gerFilterGer='';
+  });
+  toast('Datos borrados. El sistema quedó limpio ✓');
+  render();
+}
+function colabList(){ return Object.values(DB.colaboradores).sort((a,b)=>a.nombre.localeCompare(b.nombre)); }
+function scopedColabList(){
+  const l=colabList();
+  if(COORD_SCOPE) return l.filter(c=>(c.coord||'')===COORD_SCOPE);
+  if(GER_SCOPE) return l.filter(c=>(c.gerente||'')===GER_SCOPE);
+  return l;
+}
+function inScope(colabId){
+  const c=DB.colaboradores[colabId]; if(!c) return false;
+  if(COORD_SCOPE) return (c.coord||'')===COORD_SCOPE;
+  if(GER_SCOPE) return (c.gerente||'')===GER_SCOPE;
+  return true;
+}
+function evalOf(colabId, periodo){ return Object.values(DB.evaluaciones).find(e=>e.colaboradorId===colabId && e.periodo===periodo); }
+
+function latestClasificacion(colabId){
+  const items=[];
+  Object.values(DB.evaluaciones).forEach(e=>{ if(e.colaboradorId===colabId && e.estado==='aprobado') items.push({periodo:e.periodo, tipo:e.tipoMovilidad, fecha:e.fechaAprobacion||e.fechaRegistro}); });
+  Object.values(DB.historico).forEach(h=>{ if(h.colaboradorId===colabId) items.push({periodo:h.periodo, tipo:h.tipoMovilidad, fecha:h.fecha||h.fechaCarga}); });
+  if(!items.length) return null;
+  items.sort((a,b)=> (a.periodo>b.periodo?1:a.periodo<b.periodo?-1: new Date(a.fecha)-new Date(b.fecha)));
+  return items[items.length-1];
+}
+function timelineFor(colabId){
+  const items=[];
+  Object.values(DB.evaluaciones).forEach(e=>{ if(e.colaboradorId===colabId) items.push({periodo:e.periodo, tipo:e.tipoMovilidad, fecha:e.fechaAprobacion||e.fechaRegistro, origen:'Evaluación', estado:e.estado, cmt:e.justificacion}); });
+  Object.values(DB.historico).forEach(h=>{ if(h.colaboradorId===colabId) items.push({periodo:h.periodo, tipo:h.tipoMovilidad, fecha:h.fecha||h.fechaCarga, origen:'Carga histórica', estado:'aprobado', cmt:h.comentario}); });
+  items.sort((a,b)=> b.periodo.localeCompare(a.periodo) || new Date(b.fecha)-new Date(a.fecha));
+  return items;
+}
+/* movilidad previa: el registro más reciente ANTERIOR al periodo dado */
+function prevMov(colabId, period){
+  const items=timelineFor(colabId).filter(it=>it.estado!=='rechazado' && (!period || it.periodo<period));
+  return items.length? items[0] : null;
+}
+/* la evaluación más reciente del colaborador (por periodo) */
+function latestEval(colabId){
+  return Object.values(DB.evaluaciones).filter(e=>e.colaboradorId===colabId)
+    .sort((a,b)=> b.periodo.localeCompare(a.periodo) || new Date(b.fechaRegistro)-new Date(a.fechaRegistro))[0] || null;
+}
+const views = document.getElementById('views');
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.getElementById('toastRoot').appendChild(t); setTimeout(()=>t.remove(),2800); }
+function busy(msg){ let b=document.getElementById('busyOv'); if(!b){ b=document.createElement('div'); b.id='busyOv'; b.innerHTML='<div class="busy-box"><div class="busy-spin"></div><span id="busyMsg"></span></div>'; document.body.appendChild(b); } b.querySelector('#busyMsg').textContent=msg||'Cargando…'; b.classList.add('show'); }
+function idle(){ const b=document.getElementById('busyOv'); if(b) b.classList.remove('show'); }
+async function withBusy(msg, fn){ busy(msg); try{ return await fn(); } finally { setTimeout(idle, 250); } }
+function avatarHTML(c, cls=''){ return c && c.foto ? `<img class="avatar ${cls} t" src="${esc(c.foto)}">` : `<div class="avatar ${cls}">${initials(c?c.nombre:'')}</div>`; }
+
+document.querySelectorAll('.tab').forEach(b=> b.addEventListener('click', ()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); currentTab=b.dataset.tab; render();
+}));
+
+/* candado de acceso al panel completo (admin/comité/repo/pre-comité).
+   Los enlaces de jefe (#c) y gerente (#g) entran directo a SU vista y nunca ven el candado. */
+function render(){
+  if(!ready){ views.innerHTML='<div class="empty"><div class="big">Cargando…</div></div>'; return; }
+  const nav=document.querySelector('.tabs'); if(nav) nav.style.display='';
+  views.innerHTML = ({coordinador:viewCoordinador, gerente:viewGerente, comite:viewComite, repo:viewRepo, admin:viewAdmin}[currentTab])();
+  bind();
+}
+
+/* ============ coordinador ============ */
+function antiguedad(ingreso){
+  if(!ingreso) return '—';
+  const d=new Date(ingreso); if(isNaN(d)) return '—';
+  const now=new Date(); let mo=(now.getFullYear()-d.getFullYear())*12+(now.getMonth()-d.getMonth());
+  if(now.getDate()<d.getDate()) mo--; if(mo<0) return '—';
+  const y=Math.floor(mo/12), mm=mo%12;
+  const py = y? (y+(y===1?' año':' años')) : '';
+  const pm = mm? (mm+(mm===1?' mes':' meses')) : '';
+  return (py&&pm)? py+' '+pm : (py||pm||'menos de 1 mes');
+}
+function antigOf(c){ const a=c&&c.antiguedad!=null?String(c.antiguedad).trim():''; return a || antiguedad(c&&c.ingreso); }
+/* selector de movilidad claro: lista de opciones con estado seleccionado evidente */
+function movSelector(sel){
+  const s = sel? movById(sel) : null;
+  return `
+  <div class="mov-summary ${s?'has':''}" id="movSummary" style="${s?`--mc:${s.mc};background:${s.bg}`:''}">
+    ${s? `<div class="ms-no">M${s.id}</div><div class="ms-txt"><div class="ms-nm">${s.nombre}</div><div class="ms-acc">Acción: ${s.accion}</div></div><div class="ms-tag">Seleccionada</div>`
+       : `<div class="ms-empty">Elige una movilidad de la lista</div>`}
+  </div>
+  <div class="mov-list">${MOVILIDAD.map(m=>`
+    <button type="button" class="mopt ${sel==m.id?'sel':''}" data-mov="${m.id}" style="--mc:${m.mc}">
+      <span class="mopt-no">M${m.id}</span>
+      <span class="mopt-body"><span class="mopt-nm">${m.nombre}</span></span>
+      <span class="mopt-check">✓</span>
+    </button>`).join('')}</div>
+  <input type="hidden" id="fMov" value="${sel||''}">`;
+}
+/* últimos N registros de movilidad (aprobados + histórico) */
+function last4(colabId){ return timelineFor(colabId).filter(it=>it.estado!=='rechazado').slice(0,4); }
+let coordState = { colabId:'', periodo:currentPeriodo(), filter:'' };
+
+function viewCoordinador(){
+  const l = COORD_SCOPE ? scopedColabList() : colabList();
+  const coords = [...new Set(colabList().map(c=>c.coord).filter(Boolean))].sort();
+  const filtered = COORD_SCOPE ? l : (coordState.filter ? l.filter(c=>c.coord===coordState.filter) : l);
+  const c = coordState.colabId ? DB.colaboradores[coordState.colabId] : null;
+  // DETALLE: una ficha a la vez
+  if(c) return `<section class="view active">
+    <div class="toolbar">
+      <button class="btn-back" id="btnBack">← Volver a la lista</button>
+      <div class="tb-right"><span class="muted" style="font-size:13px">Periodo</span>
+        <select id="fPeriodo" style="width:auto">${periodoOptions().map(p=>`<option ${p===coordState.periodo?'selected':''}>${p}</option>`).join('')}</select></div>
+    </div>
+    ${periodLockBanner(coordState.periodo)}
+    ${fichaColaboradorHTML(c)}
+  </section>`;
+  // LISTA
+  return `<section class="view active">
+    <div class="toolbar">
+      <div>
+        <h2 class="tb-title">${COORD_SCOPE?('Jefe inmediato · '+esc(COORD_SCOPE)):'Colaboradores a evaluar'}</h2>
+        <p class="tb-sub">${filtered.length} colaborador(es) · periodo <b>${coordState.periodo}</b>. Selecciona uno para abrir su ficha y registrar la movilidad.</p>
+      </div>
+      <div class="tb-right">
+        ${COORD_SCOPE?'':`<select id="coordFilter" style="width:auto;max-width:220px"><option value="">Todos los jefes inmediatos</option>${coords.map(x=>`<option value="${esc(x)}" ${x===coordState.filter?'selected':''}>${esc(x)}</option>`).join('')}</select>`}
+        <span class="muted" style="font-size:13px">Periodo</span>
+        <select id="fPeriodo" style="width:auto">${periodoOptions().map(p=>`<option ${p===coordState.periodo?'selected':''}>${p}</option>`).join('')}</select>
+      </div>
+    </div>
+    ${filtered.length? `<div class="roster-cards" id="coordGrid">${filtered.map(o=>{ const ev=evalOf(o.id,coordState.periodo); const m=ev?movById(ev.tipoMovilidad):null; const pv=prevMov(o.id,coordState.periodo); const pm=pv?movById(pv.tipo):null;
+      return `<button type="button" class="rcard" data-colab="${o.id}">
+        ${avatarHTML(o,'lg')}
+        <div class="rc-info">
+          <div class="rc-name">${esc(tcase(o.nombre))}</div>
+          <div class="rc-meta">${esc(tcase(o.cargo||'—'))}${o.depto?' · '+esc(tcase(o.depto)):''}</div>
+          <div class="rc-badges">
+            <span class="rc-lbl">Actual:</span> ${m?`<span class="badge" style="background:${m.bg};color:${m.mc}">M${m.id} · ${m.nombre}</span>`:`<span class="pill sinasignar">Pendiente</span>`}
+            <span class="rc-lbl">Previa:</span> ${pm?`<span class="badge" style="background:${pm.bg};color:${pm.mc}">M${pm.id} · ${pm.nombre} <span style="opacity:.7">(${pv.periodo})</span></span>`:`<span class="muted" style="font-size:13px">—</span>`}
+          </div>
+        </div>
+      </button>`; }).join('')}</div>` : `<div class="card pad"><div class="empty"><div class="big">Sin colaboradores</div>Cárgalos desde Administrador.</div></div>`}
+  </section>`;
+}
+
+/* ---- Ficha del colaborador ---- */
+function fichaColaboradorHTML(c){
+  const ev = evalOf(c.id, coordState.periodo);
+  const hist = timelineFor(c.id).filter(it=>it.estado!=='rechazado' && it.periodo!==coordState.periodo).slice(0,4);
+  return `<div class="card ficha" style="overflow:hidden">
+    <div class="ficha-head">
+      ${avatarHTML(c,'xl')}
+      <div class="ficha-id">
+        <h3>${esc(tcase(c.nombre))}</h3>
+        <div class="sub">${esc(tcase(c.cargo||'Sin cargo'))}</div>
+        <div class="meta">${c.ficha?'Ficha '+esc(c.ficha):''}${c.depto?' · '+esc(tcase(c.depto)):''}</div>
+      </div>
+      ${ev?(()=>{const m=movById(ev.tipoMovilidad);return `<div class="ficha-hero"><div class="num">M${m.id}</div><div class="tier">${m.nombre}</div></div>`;})():''}
+    </div>
+    <div class="ficha-body">
+      <div class="ficha-data">
+        <div class="drow"><span class="k">Departamento</span><span class="v">${esc(tcase(c.depto||'—'))}</span></div>
+        <div class="drow"><span class="k">Sección</span><span class="v">${esc(tcase(c.seccion||'—'))}</span></div>
+        <div class="drow"><span class="k">Área</span><span class="v">${esc(tcase(c.area||'—'))}</span></div>
+        <div class="drow"><span class="k">Profesión</span><span class="v">${esc(tcase(c.profesion||'—'))}</span></div>
+        <div class="drow"><span class="k">Cargo</span><span class="v">${esc(tcase(c.cargo||'—'))}</span></div>
+        <div class="drow"><span class="k">Fecha de ingreso</span><span class="v">${fmtDate(c.ingreso)}</span></div>
+        <div class="drow"><span class="k">Antigüedad</span><span class="v">${antigOf(c)}</span></div>
+        <div class="drow"><span class="k">Jefe inmediato</span><span class="v">${esc(dispName(c.coord))}</span></div>
+        <div class="drow"><span class="k">Gerente de área</span><span class="v">${esc(dispName(c.gerente))}</span></div>
+      </div>
+
+      <div class="sec">Evolución — últimos 4 registros</div>
+      ${hist.length? `<div class="mov-strip">${hist.map(it=>{ const m=movById(it.tipo);
+        return `<div class="mov-chip" style="--mc:${m.mc};background:${m.bg}"><div class="mc-per">${esc(it.periodo)}</div><div class="mc-no">M${m.id}</div><div class="mc-nm">${m.nombre}</div></div>`; }).join('')}</div>` : `<div class="mov-strip"><div class="mov-chip" style="--mc:var(--line-2);background:#F4F6F7"><div class="mc-per">—</div><div class="mc-no" style="color:var(--muted)">—</div><div class="mc-nm">Sin histórico · nuevo</div></div></div>`}
+
+      <div class="sec" style="margin-top:24px">Movilidad del semestre ${coordState.periodo}</div>
+      <p class="section-note">${ev?'Ya hay una movilidad registrada para este periodo. Puedes ajustarla; volverá a aprobación del gerente.':'Selecciona la movilidad que corresponde al colaborador este semestre.'}</p>
+      ${movSelector(ev?ev.tipoMovilidad:null)}
+      <div class="fldwrap" style="margin-top:18px"><label class="fld">Jefe inmediato que registra</label><input id="fCoord" type="text" value="${esc((ev&&ev.coordinador)||c.coord||'')}" placeholder="Tu nombre"></div>
+      <div class="fldwrap"><label class="fld">Justificación <span class="req">*</span></label>
+        <p class="section-note" style="margin:0 0 6px">Explica con hechos observables por qué corresponde esta movilidad: desempeño, evidencia de la matriz de crecimiento, logros o áreas de mejora del semestre.</p>
+        <textarea id="fJust" placeholder="Ej.: Cumple consistentemente sus objetivos y ha asumido nuevas responsabilidades…">${esc(ev?ev.justificacion:'')}</textarea></div>
+      <div class="fldwrap"><label class="fld">Actividad de Desarrollo propuesta por el líder de área <span class="req">*</span></label>
+        <p class="section-note" style="margin:0 0 6px">Indica la actividad, plan o siguiente paso concreto para desarrollar a la persona (capacitación, proyecto, rotación, mentoría…).</p>
+        <textarea id="fActividad" placeholder="Ej.: Asignar liderazgo de un proyecto de mejora y capacitación en…">${esc(ev?(ev.actividadLider||''):'')}</textarea></div>
+      <button class="btn btn-primary" id="btnReg">${ev?'Actualizar y reenviar a aprobación':'Enviar a aprobación'}</button>
+    </div>
+  </div>`;
+}
+
+/* ============ gerente ============ */
+let gerFilterJefe='', gerFilterGer='';
+function progresoPorAreaHTML(){
+  const per=currentPeriodo();
+  const l=scopedColabList();
+  if(!l.length) return '';
+  const groups={};
+  l.forEach(c=>{ const k=c.area||c.depto||'(Sin área)'; (groups[k]=groups[k]||{total:0,evaluados:0,aprob:0}); groups[k].total++;
+    const ev=evalOf(c.id,per); if(ev){ groups[k].evaluados++; if(ev.estado==='aprobado') groups[k].aprob++; } });
+  const keys=Object.keys(groups).sort();
+  const tot=l.length, evTot=keys.reduce((s,k)=>s+groups[k].evaluados,0), apTot=keys.reduce((s,k)=>s+groups[k].aprob,0);
+  const pct=tot?Math.round(evTot/tot*100):0;
+  return `<div class="card pad" style="margin-bottom:18px">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:8px">
+      <div class="section-label" style="margin:0">Avance del periodo ${per}</div>
+      <div style="margin-left:auto;font-size:13px" class="muted"><b class="num" style="color:var(--ink);font-size:15px">${evTot}/${tot}</b> evaluados (${pct}%) · <b class="num" style="color:var(--ok)">${apTot}</b> aprobados</div>
+    </div>
+    <div class="prog-track-all"><div class="prog-fill-all" style="width:${pct}%"></div></div>
+    <details style="margin-top:12px"><summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--teal-deep)">Ver detalle por área</summary>
+      <div style="margin-top:12px">
+      ${keys.map(k=>{ const g=groups[k]; const p=g.total?Math.round(g.evaluados/g.total*100):0; const pa=g.total?Math.round(g.aprob/g.total*100):0;
+        return `<div class="prog-row"><div class="prog-lbl" title="${esc(k)}">${esc(k)}</div>
+          <div class="prog-track"><div class="prog-fill" style="width:${p}%"></div><div class="prog-fill-ap" style="width:${pa}%"></div></div>
+          <div class="prog-n">${g.evaluados}/${g.total}</div></div>`; }).join('')}
+      </div>
+      <div class="prog-legend"><span><i style="background:var(--teal)"></i>Evaluados</span><span><i style="background:var(--ok)"></i>Aprobados</span><span><i style="background:#EEF2F1"></i>Pendientes</span></div>
+    </details>
+  </div>`;
+}
+function viewGerente(){
+  const per=currentPeriodo();
+  let pend = Object.values(DB.evaluaciones).filter(e=>e.estado==='pendiente' && inScope(e.colaboradorId));
+  if(!GER_SCOPE){ if(gerFilterJefe) pend=pend.filter(e=>{const c=DB.colaboradores[e.colaboradorId];return c&&c.coord===gerFilterJefe;}); if(gerFilterGer) pend=pend.filter(e=>{const c=DB.colaboradores[e.colaboradorId];return c&&c.gerente===gerFilterGer;}); }
+  pend.sort((a,b)=>new Date(a.fechaRegistro)-new Date(b.fechaRegistro));
+  const done = Object.values(DB.evaluaciones).filter(e=>e.estado!=='pendiente' && inScope(e.colaboradorId)).sort((a,b)=>new Date(b.fechaAprobacion)-new Date(a.fechaAprobacion));
+  const jefes=[...new Set(colabList().map(c=>c.coord).filter(Boolean))].sort();
+  const gers=[...new Set(colabList().map(c=>c.gerente).filter(Boolean))].sort();
+  return `<section class="view active">
+    <div class="toolbar">
+      <div><h2 class="tb-title">${GER_SCOPE?('Gerente de área · '+esc(GER_SCOPE)):'Pre-comité'}</h2>
+        <p class="tb-sub">El gerente de área revisa la propuesta del jefe inmediato antes del comité. ${pend.length} pendiente(s). Pulsa <b>Ver</b> para revisar y decidir.</p></div>
+      ${GER_SCOPE?'':`<div class="tb-right">
+        <select id="fltJefe" style="width:auto;max-width:200px"><option value="">Todos los jefes inmediatos</option>${jefes.map(j=>`<option value="${esc(j)}" ${j===gerFilterJefe?'selected':''}>${esc(j)}</option>`).join('')}</select>
+        <select id="fltGer" style="width:auto;max-width:200px"><option value="">Todos los gerentes de área</option>${gers.map(x=>`<option value="${esc(x)}" ${x===gerFilterGer?'selected':''}>${esc(x)}</option>`).join('')}</select>
+      </div>`}
+    </div>
+    ${progresoPorAreaHTML()}
+    <div class="table-card">
+      <div class="th-row"><h3>Pendientes de revisión (pre-comité)</h3></div>
+      ${pend.length? `<table><thead><tr><th>Colaborador</th><th>Área</th><th>Jefe inmediato</th><th>Estado del jefe</th><th>Movilidad propuesta</th><th></th></tr></thead><tbody>
+      ${pend.map(ev=>{ const c=DB.colaboradores[ev.colaboradorId], m=movById(ev.tipoMovilidad); const rd=supervisorReady(ev.colaboradorId);
+        return `<tr>
+          <td><div class="personcell">${avatarHTML(c,'sm')}<div class="who"><b>${c?esc(tcase(c.nombre)):'—'}</b><span>${c?esc(tcase(c.cargo||'')):''}</span></div></div></td>
+          <td style="font-size:13px">${esc(tcase((c&&c.area)||(c&&c.depto)||'—'))}</td>
+          <td style="font-size:13px">${esc(tcase(ev.coordinador||(c&&c.coord)||'—'))}</td>
+          <td><span class="rdy rdy-${rd.estado}"><i></i>${rd.txt}</span></td>
+          <td><span class="badge" style="background:${m.bg};color:${m.mc}">M${m.id} · ${m.nombre}</span></td>
+          <td style="white-space:nowrap;text-align:right"><button class="btn-mini-primary apRow" data-id="${ev.id}">Ver y decidir</button></td>
+        </tr>`; }).join('')}
+      </tbody></table>` : `<div class="empty"><div class="big">Nada pendiente</div>No hay propuestas esperando revisión.</div>`}
+    </div>
+    <details class="table-card" style="margin-top:16px;padding:0">
+      <summary style="cursor:pointer;padding:16px 20px;font-family:'Space Grotesk';font-weight:600;font-size:16px">Historial de decisiones (${done.length})</summary>
+      ${done.length? `<table><thead><tr><th>Colaborador</th><th>Periodo</th><th>Movilidad</th><th>Estado</th><th>Gerente</th><th>Fecha</th></tr></thead><tbody>
+      ${done.map(ev=>{ const c=DB.colaboradores[ev.colaboradorId], m=movById(ev.tipoMovilidad);
+        return `<tr><td>${c?esc(c.nombre):'—'}</td><td class="code">${ev.periodo}</td><td><span class="badge" style="background:${m.bg};color:${m.mc}">M${m.id} · ${m.nombre}</span></td><td><span class="pill ${ev.estado}">${ev.estado}</span></td><td>${esc(ev.gerenteNombre||'—')}</td><td class="code">${fmtDate(ev.fechaAprobacion)}</td></tr>`; }).join('')}
+      </tbody></table>` : `<div class="empty">Aún sin decisiones registradas.</div>`}
+    </details>
+  </section>`;
+}
+
+/* ============ comité ============ */
+let comiteFilterArea='';
+/* agrupa los 7 tipos en 3 familias de acción para la matriz tipo 9-box */
+const MOV_FAMILIAS = [
+  {k:'salida', t:'Salida y ajuste', ids:[1,2]},
+  {k:'estable', t:'Estable / clave', ids:[3,4,7]},
+  {k:'alto', t:'Alto desempeño', ids:[5,6]}
+];
+function viewComite(){
+  if(!comitePeriod) comitePeriod = comiteActivePeriod();
+  const periodosAvail = comitePeriodsAvail();
+  if(!periodosAvail.includes(comitePeriod)) comitePeriod = comiteActivePeriod();
+  const activo = comiteActivePeriod();
+  const esActivo = (comitePeriod===activo);
+  const all = scopedColabList();
+  const areas=[...new Set(all.map(c=>c.area||c.depto||'(Sin área)'))].sort();
+  const colabs = comiteFilterArea ? all.filter(c=>(c.area||c.depto||'(Sin área)')===comiteFilterArea) : all;
+  const cls = colabs.map(c=>({c, cl:comiteClasifFor(c.id, comitePeriod)}));
+  const byType={}; MOVILIDAD.forEach(m=>byType[m.id]=[]);
+  let clasificados=0;
+  cls.forEach(x=>{ if(x.cl){ byType[x.cl.tipo].push(x.c); clasificados++; } });
+  // matriz (Departamento + Área) × tipo
+  const groups={}; // key -> {depto, area, counts}
+  colabs.forEach(c=>{ const dep=c.depto||'(Sin depto)', ar=c.area||'—'; const k=dep+'||'+ar; if(!groups[k]) groups[k]={depto:dep, area:ar, counts:Object.fromEntries(MOVILIDAD.map(m=>[m.id,0]))}; });
+  cls.forEach(x=>{ if(x.cl){ const dep=x.c.depto||'(Sin depto)', ar=x.c.area||'—'; const k=dep+'||'+ar; if(groups[k]) groups[k].counts[x.cl.tipo]++; } });
+  const rows=Object.values(groups).sort((a,b)=> a.depto.localeCompare(b.depto) || a.area.localeCompare(b.area));
+  const maxCell=Math.max(1,...rows.flatMap(g=>MOVILIDAD.map(m=>g.counts[m.id])));
+
+  return `<section class="view active">
+    <div class="toolbar">
+      <div><h2 class="tb-title">Comité de Desarrollo</h2>
+        <p class="tb-sub">${esActivo?`Semestre en evaluación · solo colaboradores aprobados por el gerente de área en pre-comité`:`Resultados históricos del semestre ${comitePeriod}`} · ${clasificados} de ${colabs.length} clasificado(s)${comiteFilterArea?(' · '+esc(comiteFilterArea)):''}</p></div>
+      <div class="tb-right">
+        <select id="comitePeriodSel" style="width:auto;max-width:180px">${periodosAvail.map(p=>`<option value="${p}" ${p===comitePeriod?'selected':''}>${p}${p===activo?' · en evaluación':''}</option>`).join('')}</select>
+        <select id="comiteAreaSel" style="width:auto;max-width:200px"><option value="">Todas las áreas</option>${areas.map(a=>`<option value="${esc(a)}" ${a===comiteFilterArea?'selected':''}>${esc(a)}</option>`).join('')}</select>
+        <input id="comiteSearch" type="text" placeholder="Buscar…" style="width:180px">
+      </div>
+    </div>
+    ${periodLockBanner(comitePeriod)}
+
+    <div class="ninebox">
+      ${MOV_FAMILIAS.map(f=>`<div class="nb-col">
+        <div class="nb-col-h nb-${f.k}">${f.t}</div>
+        <div class="nb-cells">
+          ${f.ids.map(id=>{ const m=movById(id); const people=byType[id];
+            return `<div class="nb-cell" style="--mc:${m.mc};background:${m.bg}">
+              <div class="nb-cell-h"><span class="nb-no">M${m.id}</span><span class="nb-nm">${m.nombre}</span><span class="nb-ct">${people.length}</span></div>
+              <div class="nb-people">
+                ${people.slice(0,10).map(c=>{ const cf=comiteClasifFor(c.id, comitePeriod); const closed=cf&&cf.cerrada; return `<button class="nb-face ${closed?'closed':''}" title="${esc(tcase(c.nombre))}${closed?' · aprobado comité':''}" data-colab="${c.id}">${avatarHTML(c,'sm')}</button>`; }).join('')}
+                ${people.length>10?`<span class="nb-more">+${people.length-10}</span>`:''}
+                ${people.length===0?`<span class="nb-empty">—</span>`:''}
+              </div>
+              <div class="nb-acc">${m.accion}</div>
+            </div>`; }).join('')}
+        </div>
+      </div>`).join('')}
+    </div>
+
+    <div class="table-card" style="margin-top:22px">
+      <div class="th-row"><h3>Distribución por departamento y área</h3></div>
+      ${rows.length? `
+      <div class="stk-legend">${MOVILIDAD.map(m=>`<span><i style="background:${m.mc}"></i>M${m.id} ${m.nombre}</span>`).join('')}</div>
+      <div class="stk-wrap">
+        ${(()=>{ const deptos=[...new Set(rows.map(g=>g.depto))].sort();
+          return deptos.map(dep=>{ const grs=rows.filter(g=>g.depto===dep); const depTot=grs.reduce((s,g)=>s+MOVILIDAD.reduce((a,m)=>a+g.counts[m.id],0),0);
+            return `<div class="stk-group">
+              <div class="stk-gh">${esc(dep)} <span>${depTot} colaborador(es)</span></div>
+              ${grs.map(g=>{ const tot=MOVILIDAD.reduce((s,m)=>s+g.counts[m.id],0);
+                return `<div class="stk-row"><div class="stk-lbl" title="${esc(g.area)}">${esc(g.area)}</div>
+                  <div class="stk-track">${MOVILIDAD.filter(m=>g.counts[m.id]>0).map(m=>{ const n=g.counts[m.id]; const w=tot?(n/tot*100):0;
+                    return `<div class="stk-seg" style="width:${w}%;background:${m.mc}" title="${m.nombre}: ${n}">${w>=9?n:''}</div>`; }).join('')||'<div class="stk-seg" style="width:100%;background:#E4E6E8"></div>'}</div>
+                  <div class="stk-n">${tot}</div></div>`; }).join('')}
+            </div>`; }).join('');
+        })()}
+      </div>` : `<div class="empty">Sin colaboradores clasificados aún.</div>`}
+      <p class="section-note" style="padding:4px 20px 16px;margin:0">Cada barra muestra la composición de movilidad del área; los segmentos son proporcionales y el número al final es el total de colaboradores clasificados.</p>
+    </div>
+    ${coachRecommendations(byType, rows, clasificados)}
+  </section>`;
+}
+function coachRecommendations(byType, rows, total){
+  const head=`<div class="th-row"><h3>Recomendaciones para el comité</h3></div>`;
+  if(!total){
+    return `<div class="table-card coach-card" style="margin-top:22px">${head}
+      <p class="section-note" style="padding:0 20px 18px;margin:0">Aún no hay colaboradores clasificados en este periodo. En cuanto el gerente de área apruebe casos en el pre-comité (o al consultar un semestre histórico), aquí aparecerá una lectura de la distribución con recomendaciones para la conversación del comité.</p>
+    </div>`;
+  }
+  const fam=k=>MOV_FAMILIAS.find(f=>f.k===k).ids.reduce((s,id)=>s+byType[id].length,0);
+  const salida=fam('salida'), estable=fam('estable'), alto=fam('alto'), m7=byType[7].length;
+  const pct=n=> total? Math.round(n/total*100):0;
+  const areaAgg=rows.map(g=>{ const t=MOVILIDAD.reduce((s,m)=>s+g.counts[m.id],0);
+    return {label:g.depto+' · '+g.area, t, s:g.counts[1]+g.counts[2], a:g.counts[5]+g.counts[6], e:g.counts[3]+g.counts[4]+g.counts[7]}; }).filter(x=>x.t>0);
+  const riesgo=areaAgg.filter(x=>x.s>0).sort((x,y)=>(y.s/y.t)-(x.s/x.t))[0];
+  const talento=areaAgg.filter(x=>x.a>0).sort((x,y)=>(y.a/y.t)-(x.a/x.t))[0];
+  const sesgo=areaAgg.filter(x=>x.t>=4 && (Math.max(x.s,x.e,x.a)/x.t)>=0.8)[0];
+  const it=[];
+  it.push(`<b>Panorama general.</b> De ${total} colaborador(es) clasificado(s): <b>${pct(alto)}%</b> en alto desempeño, <b>${pct(estable)}%</b> estables/clave y <b>${pct(salida)}%</b> en salida y ajuste. Una organización saludable concentra a la mayoría en el bloque estable/clave, sostiene un grupo visible de alto desempeño y mantiene el bloque de salida y ajuste acotado y siempre con un plan asociado.`);
+  if(alto) it.push(`<b>Talento a capitalizar.</b> El alto desempeño es su activo más escaso: asegúrenle retención, planes de sucesión, asignaciones reto y espacios para que actúe como mentor. Cuídenlo de dos riesgos silenciosos: el estancamiento y la sobrecarga por ser “los de siempre”.`);
+  if(estable) it.push(`<b>Columna vertebral.</b> El grupo estable/clave sostiene la operación. Manténganlo conectado con desarrollo puntual y reconocimiento; es de aquí de donde suele emerger el próximo alto desempeño cuando se le da el reto adecuado.`);
+  if(salida) it.push(`<b>Foco de atención.</b> El bloque de salida y ajuste pide conversaciones honestas y planes de mejora con plazos y apoyos claros. Antes de concluir una salida, revisen el <i>ajuste al puesto</i> y la calidad del acompañamiento del líder: muchas veces el problema es de encaje o de dirección, no de la persona.`);
+  if(m7) it.push(`<b>En adaptación (M7).</b> ${m7} persona(s) llevan menos de un año en el puesto. Evalúenlas con prudencia y prioricen acompañamiento; aún es pronto para conclusiones definitivas.`);
+  if(riesgo && (riesgo.s/riesgo.t)>=0.34) it.push(`<b>Concentración de riesgo.</b> “${esc(riesgo.label)}” reúne la mayor proporción de salida/ajuste (${riesgo.s} de ${riesgo.t}). Cuando el patrón se agrupa en un área, conviene mirar causas de <i>sistema</i> —liderazgo, carga de trabajo, selección, claridad de expectativas— antes de mirar a las personas una por una.`);
+  if(talento && (talento.a/talento.t)>=0.34) it.push(`<b>Cantera de talento.</b> “${esc(talento.label)}” es donde más se concentra el alto desempeño; puede ser fuente de sucesores y de buenas prácticas para replicar en otras áreas.`);
+  if(sesgo) it.push(`<b>Posible sesgo de calificación.</b> En “${esc(sesgo.label)}” casi todos quedaron en la misma categoría. Vale la pena contrastar con el líder si refleja la realidad o un sesgo de indulgencia/severidad, para sostener la consistencia entre áreas.`);
+  it.push(`<b>Para cerrar.</b> Sugiero decidir por bloques (talento, estable, ajuste), documentar el acuerdo y la <i>actividad de desarrollo</i> de cada caso, y dar seguimiento el próximo semestre para observar el movimiento real entre categorías. La foto de hoy vale por las decisiones que activemos, no por la clasificación en sí.`);
+  return `<div class="table-card coach-card" style="margin-top:22px">
+    ${head}
+    <p class="section-note" style="padding:0 20px;margin:0 0 8px">Comité, con base en la distribución observada, les comparto una lectura y algunas sugerencias para orientar la conversación:</p>
+    <ul class="coach-list">${it.map(i=>`<li>${i}</li>`).join('')}</ul>
+  </div>`;
+}
+function hexA(hex,a){ const h=hex.replace('#',''); const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16); return `rgba(${r},${g},${b},${a.toFixed(3)})`; }
+
+/* ============ Repositorio (evaluaciones aprobadas por comité, por semestre) ============ */
+function repoBySemestre(){
+  const g={};
+  Object.values(DB.evaluaciones).forEach(e=>{ if(e.comiteAprobado && inScope(e.colaboradorId)){ (g[e.periodo]=g[e.periodo]||[]).push(e); } });
+  return g;
+}
+function viewRepo(){
+  const g=repoBySemestre(); const periodos=Object.keys(g).sort().reverse();
+  const totalCerradas=periodos.reduce((s,p)=>s+g[p].length,0);
+  return `<section class="view active">
+    <div class="toolbar">
+      <div><h2 class="tb-title">Repositorio de movilidad</h2>
+        <p class="tb-sub">Cada semestre es una carpeta con las fichas de los colaboradores aprobados por el comité. ${totalCerradas} ficha(s) archivada(s).</p></div>
+    </div>
+    ${periodos.length? periodos.map(p=>{ const evs=g[p].slice().sort((a,b)=>{ const ca=DB.colaboradores[a.colaboradorId], cb=DB.colaboradores[b.colaboradorId]; return (ca?ca.nombre:'').localeCompare(cb?cb.nombre:''); });
+      return `<div class="repo-folder">
+        <div class="rf-head">
+          <span class="rf-ico">📁</span>
+          <span class="rf-per">${p}</span>
+          <span class="rf-count">${evs.length} ficha(s)</span>
+        </div>
+        <div class="rf-acts">
+          <button class="btn-mini-primary" onclick="downloadSemestrePDF('${p}')">⬇ Fichas (PDF)</button>
+          <button class="mini" onclick="downloadInformePDF('${p}')">📊 Informe (PDF)</button>
+          <button class="mini" onclick="downloadRepoExcel('${p}')">⬇ Excel (ERP)</button>
+        </div>
+        <div class="rf-body">
+          ${evs.map(e=>{ const c=DB.colaboradores[e.colaboradorId]; if(!c) return ''; const m=movById(e.tipoMovilidad);
+            return `<div class="rf-file">
+              ${avatarHTML(c,'sm')}
+              <div class="rf-file-info"><div class="rf-file-name">${esc(c.nombre)}</div><div class="rf-file-meta">${esc(c.depto||'')}${c.area?' · '+esc(c.area):''}</div></div>
+              <span class="badge" style="background:${m.bg};color:${m.mc}">M${m.id} · ${m.nombre}</span>
+              <button class="mini" onclick="downloadFichaPDF('${c.id}')">📄 PDF</button>
+            </div>`; }).join('')}
+        </div>
+      </div>`; }).join('')
+      : `<div class="table-card"><div class="empty"><div class="big">Repositorio vacío</div>Cierra evaluaciones desde el Comité (botón “Aprobado comité”) para archivarlas aquí.</div></div>`}
+    <p class="section-note" style="margin-top:14px">Las fichas en PDF incluyen foto, datos, movilidad vigente y previa, trayectoria y el sello de aprobación del comité. El Excel queda listo para el registro en el ERP.</p>
+  </section>`;
+}
+function repoAOA(periodo){
+  const head=['Codigo','Nombre','Movilidad'];
+  const evs=repoBySemestre()[periodo]||[];
+  const body=evs.map(e=>{ const c=DB.colaboradores[e.colaboradorId]||{};
+    return [c.ficha||'', c.nombre||'', 'M'+e.tipoMovilidad];
+  });
+  return [head].concat(body);
+}
+async function downloadRepoExcel(periodo){
+  const aoa=repoAOA(periodo); if(aoa.length<2){ toast('No hay registros aprobados por el comité en este semestre.'); return; }
+  await withBusy('Generando Excel…', async()=>{
+  await ensureXLSX();
+  const name=`movilidad_ERP_${periodo}_OLO.xlsx`;
+  if(window.XLSX){
+    try{ const ws=XLSX.utils.aoa_to_sheet(aoa); ws['!cols']=[{wch:12},{wch:30},{wch:12}];
+      const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Movilidad');
+      const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+      saveBlob(new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), name);
+      toast('Excel del semestre '+periodo+' generado ✓'); return;
+    }catch(e){ /* cae al respaldo */ }
+  }
+  // respaldo sin librería: hoja de cálculo compatible con Excel (SpreadsheetML)
+  const rowsXml=aoa.map(r=>'<Row>'+r.map(c=>`<Cell><Data ss:Type="String">${esc(String(c==null?'':c))}</Data></Cell>`).join('')+'</Row>').join('');
+  const xml=`<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Movilidad"><Table>${rowsXml}</Table></Worksheet></Workbook>`;
+  saveBlob(new Blob([xml],{type:'application/vnd.ms-excel'}), `movilidad_ERP_${periodo}_OLO.xls`);
+  toast('Excel del semestre '+periodo+' generado ✓');
+  });
+}
+/* ---- Fichas en PDF ---- */
+function hexRGB(hex){ const h=hex.replace('#',''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+function logoDataURL(){ const i=document.querySelector('.logo img'); return i?i.src:''; }
+function drawFicha(doc, c, ev){
+  const W=doc.internal.pageSize.getWidth(); const M=40; let y=0;
+  const m = ev? movById(ev.tipoMovilidad) : (comiteClasif(c.id)?movById(comiteClasif(c.id).tipo):null);
+  const per = ev? ev.periodo : (comiteClasif(c.id)?comiteClasif(c.id).periodo:'');
+  // Banda superior (teal corporativo)
+  doc.setFillColor(0,115,94); doc.rect(0,0,W,96,'F');
+  const lg=logoDataURL(); if(lg){ try{ doc.addImage(lg,'PNG',M,26,44,44); }catch(e){} }
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text('Ficha de Movilidad del Colaborador', M+58, 44);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text('OLO · Gestión de talento · Periodo '+per, M+58, 62);
+  doc.setFontSize(8); doc.text('SOP04-A2-T4-NO02', W-M, 40, {align:'right'}); doc.text('Anexo AN12', W-M, 52, {align:'right'});
+  y=124;
+  // Foto
+  const px=M, py=y, ps=88;
+  if(c.foto){ try{ doc.addImage(c.foto,'JPEG',px,py,ps,ps); }catch(e){ doc.setFillColor(238,240,241); doc.rect(px,py,ps,ps,'F'); } }
+  else { doc.setFillColor(238,240,241); doc.roundedRect(px,py,ps,ps,6,6,'F'); doc.setTextColor(110,116,121); doc.setFont('helvetica','bold'); doc.setFontSize(24); doc.text(initials(c.nombre), px+ps/2, py+ps/2+8,{align:'center'}); }
+  // Nombre y cargo
+  doc.setTextColor(26,26,26); doc.setFont('helvetica','bold'); doc.setFontSize(17);
+  doc.text(c.nombre||'—', px+ps+18, y+22);
+  doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(90,96,102);
+  doc.text((c.cargo||'Sin cargo')+(c.ficha?'   ·   Ficha '+c.ficha:'')+'   ·   '+nivelPaso(c), px+ps+18, y+42);
+  // Movilidad destacada
+  if(m){ const [r,g,b]=hexRGB(m.mc); doc.setFillColor(r,g,b); doc.roundedRect(W-M-150,y,150,ps,6,6,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(30); doc.text('M'+m.id, W-M-75, y+42, {align:'center'});
+    doc.setFontSize(10); doc.text(doc.splitTextToSize(m.nombre, 138), W-M-75, y+60, {align:'center'}); }
+  y+=ps+26;
+  // Datos
+  doc.setDrawColor(228,230,232); doc.setLineWidth(0.8);
+  const datos=[['Departamento',c.depto||'—'],['Sección',c.seccion||'—'],['Área',c.area||'—'],['Profesión',c.profesion||'—'],['Nivel y paso',nivelPaso(c)],['Fecha de ingreso',fmtDate(c.ingreso)],['Antigüedad',antigOf(c)],['Jefe inmediato',dispName(c.coord)],['Gerente de área',dispName(c.gerente)]];
+  doc.setFontSize(10);
+  const colW=(W-2*M)/2, rowH=24;
+  datos.forEach((d,i)=>{ const cx=M+(i%2)*colW, cy=y+Math.floor(i/2)*rowH;
+    doc.setTextColor(110,116,121); doc.setFont('helvetica','bold'); doc.text(d[0], cx, cy);
+    doc.setTextColor(26,26,26); doc.setFont('helvetica','normal'); doc.text(String(d[1]), cx+110, cy); });
+  y+=Math.ceil(datos.length/2)*rowH+14;
+  // Movilidad vigente + previa
+  doc.setDrawColor(228,230,232); doc.line(M,y,W-M,y); y+=22;
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(0,115,94); doc.text('MOVILIDAD DEL SEMESTRE', M, y); y+=16;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(26,26,26);
+  doc.text(m?('M'+m.id+' · '+m.nombre+'   —   Acción: '+m.accion):'Sin clasificación', M, y); y+=18;
+  const pv=prevMov(c.id, per); const pm=pv?movById(pv.tipo):null;
+  doc.setTextColor(110,116,121); doc.text('Movilidad previa: '+(pm?('0'+pm.id+' · '+pm.nombre+'  ('+pv.periodo+')'):'sin registro'), M, y); y+=22;
+  // Trayectoria
+  const items=timelineFor(c.id).slice(0,6);
+  if(items.length){ doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(0,115,94); doc.text('TRAYECTORIA', M, y); y+=15;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(60,63,66);
+    items.forEach(it=>{ const mm=movById(it.tipo); doc.text('•  '+it.periodo+'  —  0'+mm.id+' '+mm.nombre+(it.origen==='Carga histórica'?'  (histórico)':''), M+6, y); y+=14; }); y+=6; }
+  // Proyecto de desarrollo
+  if(ev&&(ev.actividad||ev.proyecto)){ if(y>H-90){ doc.addPage(); y=54; } doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(0,115,94); doc.text('ACTIVIDAD DE DESARROLLO (COMITÉ)', M, y); y+=14;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9.5); doc.setTextColor(60,63,66); const pl=doc.splitTextToSize(ev.actividad||ev.proyecto, W-2*M); doc.text(pl, M, y); y+=pl.length*13+8; }
+  // Sello comité
+  if(ev&&ev.comiteAprobado){ doc.setFillColor(226,244,239); doc.setDrawColor(191,230,221); doc.roundedRect(M,y,W-2*M,34,6,6,'FD');
+    doc.setTextColor(0,115,94); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+    doc.text('APROBADO POR EL COMITÉ DE DESARROLLO   ·   '+(ev.fechaComite?fmtDate(ev.fechaComite):''), M+14, y+22); y+=40; }
+  // Pie
+  doc.setTextColor(150,155,160); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+  doc.text('Documento generado del Sistema de Movilidad de Colaboradores · OLO', M, doc.internal.pageSize.getHeight()-24);
+}
+function ensurePDF(){ return new Promise((resolve)=>{
+  if(window.jspdf&&window.jspdf.jsPDF) return resolve(true);
+  const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  s.onload=()=>resolve(!!(window.jspdf&&window.jspdf.jsPDF)); s.onerror=()=>resolve(false);
+  document.head.appendChild(s); setTimeout(()=>resolve(!!(window.jspdf&&window.jspdf.jsPDF)), 4000);
+}); }
+function makeDoc(){ const J=(window.jspdf&&window.jspdf.jsPDF); if(!J){ toast('No se pudo cargar el generador de PDF. Revisa tu conexión.'); return null; } return new J({unit:'pt',format:'a4'}); }
+function ensureXLSX(){ return new Promise((resolve)=>{
+  if(window.XLSX) return resolve(true);
+  const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload=()=>resolve(!!window.XLSX); s.onerror=()=>resolve(false);
+  document.head.appendChild(s); setTimeout(()=>resolve(!!window.XLSX), 4000);
+}); }
+function savePDF(doc, name){ try{ saveBlob(doc.output('blob'), name); }catch(e){ try{ doc.save(name); }catch(_){ toast('No se pudo descargar el PDF en este entorno.'); } } }
+/* Página de resumen del comité: matriz 9-box + barras por departamento/área */
+function drawResumen(doc, periodo){
+  const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight(), M=40;
+  const evs=repoBySemestre()[periodo]||[];
+  const byType={}; MOVILIDAD.forEach(m=>byType[m.id]=0);
+  const groups={};
+  evs.forEach(e=>{ byType[e.tipoMovilidad]=(byType[e.tipoMovilidad]||0)+1; const c=DB.colaboradores[e.colaboradorId]||{}; const k=(c.depto||'(Sin depto)')+'||'+(c.area||'—'); (groups[k]=groups[k]||{depto:c.depto||'(Sin depto)',area:c.area||'—',counts:Object.fromEntries(MOVILIDAD.map(m=>[m.id,0]))}); groups[k].counts[e.tipoMovilidad]++; });
+  // banda superior
+  doc.setFillColor(0,115,94); doc.rect(0,0,W,96,'F');
+  const lg=logoDataURL(); if(lg){ try{ doc.addImage(lg,'PNG',M,26,44,44); }catch(e){} }
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text('Resumen del Comité de Desarrollo', M+58, 44);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text('OLO · Movilidad de Colaboradores · Periodo '+periodo, M+58, 62);
+  doc.setFontSize(8); doc.text('SOP04-A2-T4-NO02', W-M, 40, {align:'right'}); doc.text(evs.length+' colaborador(es)', W-M, 52, {align:'right'});
+  let y=124;
+  // 9-box: tres columnas por familia
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(0,115,94); doc.text('DISTRIBUCIÓN POR TIPO DE MOVILIDAD', M, y); y+=14;
+  const famColors={salida:[163,58,48], estable:[47,169,142], alto:[0,115,94]};
+  const gap=12, colW=(W-2*M-2*gap)/3; const colX=[M, M+colW+gap, M+2*(colW+gap)]; const topY=y;
+  let maxColH=0;
+  MOV_FAMILIAS.forEach((f,ci)=>{ let cy=topY; const [r,g,b]=famColors[f.k];
+    doc.setFillColor(r,g,b); doc.roundedRect(colX[ci],cy,colW,22,4,4,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.text(f.t.toUpperCase(), colX[ci]+colW/2, cy+15, {align:'center'});
+    cy+=30;
+    f.ids.forEach(id=>{ const m=movById(id); const [mr,mg,mb]=hexRGB(m.mc); const n=byType[id]||0; const bh=42;
+      doc.setDrawColor(228,230,232); doc.setFillColor(255,255,255); doc.roundedRect(colX[ci],cy,colW,bh,5,5,'FD');
+      doc.setFillColor(mr,mg,mb); doc.rect(colX[ci],cy,4,bh,'F');
+      doc.setTextColor(mr,mg,mb); doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.text('M'+m.id, colX[ci]+12, cy+18);
+      doc.setTextColor(26,26,26); doc.setFontSize(9); doc.text(doc.splitTextToSize(m.nombre,colW-58), colX[ci]+30, cy+15);
+      doc.setTextColor(mr,mg,mb); doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.text(String(n), colX[ci]+colW-12, cy+27, {align:'right'});
+      cy+=bh+8; });
+    maxColH=Math.max(maxColH, cy-topY);
+  });
+  y=topY+maxColH+16;
+  // barras por departamento/área
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(0,115,94); doc.text('DISTRIBUCIÓN POR DEPARTAMENTO Y ÁREA', M, y); y+=16;
+  const rows=Object.values(groups).sort((a,b)=> a.depto.localeCompare(b.depto)||a.area.localeCompare(b.area));
+  doc.setFontSize(9);
+  rows.forEach(gr=>{ if(y>H-70){ doc.addPage(); y=60; } const tot=MOVILIDAD.reduce((s,m)=>s+gr.counts[m.id],0);
+    doc.setTextColor(60,63,66); doc.setFont('helvetica','normal'); doc.text(doc.splitTextToSize(gr.depto+' · '+gr.area,150), M, y+10);
+    const bx=M+160, bw=W-M-30-bx, bh=14; let cx=bx;
+    doc.setFillColor(238,242,241); doc.roundedRect(bx,y,bw,bh,3,3,'F');
+    MOVILIDAD.forEach(m=>{ const n=gr.counts[m.id]; if(!n) return; const seg=tot?(n/tot*bw):0; const [r,g,b]=hexRGB(m.mc); doc.setFillColor(r,g,b); doc.rect(cx,y,seg,bh,'F'); cx+=seg; });
+    doc.setTextColor(26,26,26); doc.setFont('helvetica','bold'); doc.text(String(tot), W-M, y+11, {align:'right'});
+    y+=bh+10; });
+  // leyenda
+  if(y>H-60){ doc.addPage(); y=60; }
+  y+=4; doc.setFont('helvetica','normal'); doc.setFontSize(7.5); let lx=M;
+  MOVILIDAD.forEach(m=>{ const [r,g,b]=hexRGB(m.mc); doc.setFillColor(r,g,b); doc.rect(lx,y-6,8,8,'F'); doc.setTextColor(60,63,66); const t='M'+m.id+' '+m.nombre; doc.text(t,lx+11,y); lx+=doc.getTextWidth(t)+26; if(lx>W-120){lx=M;y+=14;} });
+  doc.setTextColor(150,155,160); doc.setFontSize(8); doc.text('Sistema de Movilidad de Colaboradores · OLO', M, H-24);
+}
+async function downloadFichaPDF(colabId){
+  const c=DB.colaboradores[colabId]; if(!c) return; const ev=latestEval(colabId);
+  await withBusy('Generando ficha PDF…', async()=>{ await ensurePDF(); const doc=makeDoc(); if(!doc) return; drawFicha(doc,c,ev); savePDF(doc, `ficha_movilidad_${(c.ficha||c.nombre).toString().replace(/\s+/g,'_')}.pdf`); });
+}
+async function downloadSemestrePDF(periodo){
+  const evs=repoBySemestre()[periodo]||[]; if(!evs.length){ toast('No hay fichas aprobadas por el comité en este semestre.'); return; }
+  await withBusy('Generando fichas PDF…', async()=>{ await ensurePDF(); const doc=makeDoc(); if(!doc) return;
+    drawResumen(doc, periodo);
+    evs.forEach((e)=>{ doc.addPage(); const c=DB.colaboradores[e.colaboradorId]; if(c) drawFicha(doc,c,e); });
+    savePDF(doc, `fichas_movilidad_${periodo}_OLO.pdf`); });
+  toast('Fichas del semestre '+periodo+' generadas ✓');
+}
+/* Informe de gestión del semestre: KPIs, distribución por tipo/acción, por área y tabla de decisiones */
+async function downloadInformePDF(periodo){
+  const evs=repoBySemestre()[periodo]||[]; if(!evs.length){ toast('No hay decisiones para informar en este semestre.'); return; }
+  await withBusy('Generando informe…', async()=>{ await ensurePDF(); const doc=makeDoc(); if(!doc) return; await drawInformeAndSave(doc, periodo, evs); });
+}
+async function drawInformeAndSave(doc, periodo, evs){
+  const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight(), M=40;
+  const byType={}; MOVILIDAD.forEach(m=>byType[m.id]=0); evs.forEach(e=>byType[e.tipoMovilidad]++);
+  const salida=byType[1]+byType[2], alto=byType[5]+byType[6], estable=byType[3]+byType[4]+byType[7];
+  // banda
+  doc.setFillColor(0,115,94); doc.rect(0,0,W,96,'F');
+  const lg=logoDataURL(); if(lg){ try{ doc.addImage(lg,'PNG',M,26,44,44);}catch(e){} }
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.text('Informe de Gestión de Movilidad', M+58, 44);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.text('OLO · Comité de Desarrollo · Periodo '+periodo, M+58, 62);
+  doc.setFontSize(8); doc.text('Generado: '+fmtDate(new Date().toISOString()), W-M, 40, {align:'right'});
+  let y=124;
+  // KPIs
+  const kpis=[['Decisiones cerradas', evs.length],['Salida y ajuste', salida],['Estable / clave', estable],['Alto desempeño', alto]];
+  const kw=(W-2*M-3*10)/4;
+  kpis.forEach((k,i)=>{ const x=M+i*(kw+10); doc.setFillColor(244,248,247); doc.roundedRect(x,y,kw,54,6,6,'F');
+    doc.setTextColor(0,115,94); doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.text(String(k[1]), x+kw/2, y+28, {align:'center'});
+    doc.setTextColor(90,96,102); doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.text(doc.splitTextToSize(k[0],kw-8), x+kw/2, y+44, {align:'center'}); });
+  y+=74;
+  // Distribución por tipo + acción
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(0,115,94); doc.text('RESUMEN DE MOVILIDADES Y ACCIONES', M, y); y+=8;
+  doc.setDrawColor(228,230,232); doc.line(M,y,W-M,y); y+=16;
+  MOVILIDAD.forEach(m=>{ const n=byType[m.id]; const [r,g,b]=hexRGB(m.mc);
+    doc.setFillColor(r,g,b); doc.circle(M+5,y-3,4,'F');
+    doc.setTextColor(26,26,26); doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.text(`M${m.id} · ${m.nombre}`, M+16, y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(90,96,102); doc.setFontSize(9); doc.text('Acción: '+m.accion, M+200, y);
+    doc.setTextColor(r,g,b); doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.text(String(n), W-M, y, {align:'right'}); y+=18; });
+  y+=8;
+  // Por área
+  if(y>H-120){ doc.addPage(); y=54; }
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(0,115,94); doc.text('DECISIONES POR ÁREA', M, y); y+=8;
+  doc.setDrawColor(228,230,232); doc.line(M,y,W-M,y); y+=14;
+  const areas={}; evs.forEach(e=>{ const c=DB.colaboradores[e.colaboradorId]||{}; const k=(c.depto||'(Sin depto)')+' · '+(c.area||'—'); areas[k]=(areas[k]||0)+1; });
+  doc.setFontSize(9.5);
+  Object.keys(areas).sort().forEach(k=>{ if(y>H-50){ doc.addPage(); y=54; } doc.setTextColor(60,63,66); doc.setFont('helvetica','normal'); doc.text(doc.splitTextToSize(k,W-2*M-40), M, y); doc.setFont('helvetica','bold'); doc.text(String(areas[k]), W-M, y, {align:'right'}); y+=15; });
+  // Tabla de decisiones (nueva página)
+  doc.addPage(); y=54;
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(0,115,94); doc.text('Detalle de decisiones — '+periodo, M, y); y+=18;
+  const cols=[['Colaborador',150],['Área',90],['Mov.',34],['Acción',110],['Actividad de desarrollo',150]];
+  function header(){ let x=M; doc.setFillColor(0,115,94); doc.rect(M,y-11,W-2*M,18,'F'); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(8.5); cols.forEach(c=>{ doc.text(c[0],x+3,y); x+=c[1]; }); y+=13; }
+  header();
+  const sorted=evs.slice().sort((a,b)=>{ const ca=DB.colaboradores[a.colaboradorId]||{}, cb=DB.colaboradores[b.colaboradorId]||{}; return (ca.area||'').localeCompare(cb.area||'')||(ca.nombre||'').localeCompare(cb.nombre||''); });
+  doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40); doc.setFontSize(8);
+  sorted.forEach((e,i)=>{ const c=DB.colaboradores[e.colaboradorId]||{}, m=movById(e.tipoMovilidad)||{};
+    const cells=[c.nombre||'—', (c.area||c.depto||'—'), 'M'+e.tipoMovilidad, m.accion||'', (e.actividad||e.proyecto||'—')];
+    const hs=cells.map((t,j)=>doc.splitTextToSize(String(t),cols[j][1]-6));
+    const rh=Math.max(...hs.map(x=>x.length))*10+6;
+    if(y+rh>H-30){ doc.addPage(); y=54; header(); doc.setFont('helvetica','normal'); doc.setTextColor(40,40,40); doc.setFontSize(8); }
+    if(i%2){ doc.setFillColor(247,249,249); doc.rect(M,y-9,W-2*M,rh,'F'); }
+    let x=M; hs.forEach((lines,j)=>{ if(j===2){ const mm=movById(e.tipoMovilidad); doc.setTextColor(...hexRGB(mm.mc)); doc.setFont('helvetica','bold'); } else { doc.setTextColor(40,40,40); doc.setFont('helvetica','normal'); } doc.text(lines,x+3,y); x+=cols[j][1]; });
+    y+=rh;
+  });
+  doc.setTextColor(150,155,160); doc.setFontSize(8); doc.text('Informe de gestión · Sistema de Movilidad de Colaboradores · OLO', M, H-20);
+  savePDF(doc, `informe_movilidad_${periodo}_OLO.pdf`);
+  toast('Informe de gestión '+periodo+' generado ✓');
+}
+/* clasificación para el comité: prioriza la vigente (aprobada/histórico); si no hay, muestra la más reciente propuesta (pendiente) para que el comité la revise con foto */
+function comiteClasif(colabId){
+  const cl=latestClasificacion(colabId); if(cl) return cl;
+  const ev=Object.values(DB.evaluaciones).filter(e=>e.colaboradorId===colabId)
+    .sort((a,b)=> b.periodo.localeCompare(a.periodo) || new Date(b.fechaRegistro)-new Date(a.fechaRegistro))[0];
+  return ev? {periodo:ev.periodo, tipo:ev.tipoMovilidad, fecha:ev.fechaRegistro, propuesta:true} : null;
+}
+/* clasificación de un colaborador PARA un periodo concreto.
+   - periodo actual (el que se evalúa): solo si pasó la aprobación del gerente (pre-comité) o ya lo cerró el comité.
+   - periodos pasados: se toma del histórico o de la evaluación aprobada/cerrada de ese periodo. */
+function comiteClasifFor(colabId, period){
+  const activo = comiteActivePeriod();
+  if(period===activo){
+    const ev=evalOf(colabId, period);
+    if(ev && (ev.comiteAprobado || ev.estado==='aprobado')) return {periodo:period, tipo:ev.tipoMovilidad, cerrada:!!ev.comiteAprobado};
+    return null;
+  }
+  const ev=Object.values(DB.evaluaciones).find(e=>e.colaboradorId===colabId && e.periodo===period && (e.comiteAprobado||e.estado==='aprobado'));
+  if(ev) return {periodo:period, tipo:ev.tipoMovilidad, cerrada:!!ev.comiteAprobado};
+  const hi=Object.values(DB.historico).find(x=>x.colaboradorId===colabId && x.periodo===period);
+  if(hi) return {periodo:period, tipo:hi.tipoMovilidad, historico:true};
+  return null;
+}
+/* el periodo que se está evaluando (el más reciente con evaluaciones pendientes/aprobadas, o el vigente) */
+function comiteActivePeriod(){
+  const withEval=[...new Set(Object.values(DB.evaluaciones).map(e=>e.periodo))].sort();
+  return withEval.length? withEval[withEval.length-1] : currentPeriodo();
+}
+/* todos los periodos con datos (evaluaciones + histórico), desc, incluyendo el activo */
+function comitePeriodsAvail(){
+  const s=new Set(); Object.values(DB.evaluaciones).forEach(e=>s.add(e.periodo)); Object.values(DB.historico).forEach(h=>s.add(h.periodo)); s.add(comiteActivePeriod());
+  return [...s].filter(Boolean).sort().reverse();
+}
+/* ¿la evaluación del supervisor para el periodo activo está lista? (tiene justificación) */
+function supervisorReady(colabId){
+  const ev=evalOf(colabId, comiteActivePeriod());
+  if(!ev) return {estado:'sin', txt:'Sin iniciar'};
+  if(ev.estado==='aprobado'||ev.comiteAprobado) return {estado:'aprobado', txt:'Aprobada'};
+  if(ev.estado==='rechazado') return {estado:'rechazado', txt:'Rechazada'};
+  if(ev.justificacion && ev.justificacion.trim()) return {estado:'lista', txt:'Lista para revisar'};
+  return {estado:'proceso', txt:'Falta el jefe inmediato'};
+}
+let comitePeriod = '';
+let comiteMovSel = {};
+function comiteSelMov(colabId, v){ comiteMovSel[colabId]=parseInt(v)||0; openFicha(colabId, 'comite'); }
+function openFicha(colabId, mode){
+  mode = mode || 'comite';
+  const c=DB.colaboradores[colabId]; if(!c) return;
+  const cl=comiteClasif(colabId); const clm=cl?movById(cl.tipo):null;
+  const ev=latestEval(colabId);
+  const sup = ev? movById(ev.tipoMovilidad) : null;               // propuesta del jefe inmediato
+  const curTipo = comiteMovSel[colabId] || (ev?ev.tipoMovilidad:(cl?cl.tipo:0));
+  const m = curTipo? movById(curTipo) : null;
+  const pv=prevMov(colabId, ev?ev.periodo:(cl?cl.periodo:null)); const pm=pv?movById(pv.tipo):null;
+  const items=timelineFor(colabId);
+  const cerrada = ev && ev.comiteAprobado;
+  const actividad = (ev && (ev.actividad!=null?ev.actividad:ev.proyecto)) || '';
+  const confidencial = (mode==='comite');   // nivel/paso solo en comité
+  document.getElementById('modalBox').innerHTML = `
+    <div class="fx-head">
+      <button class="fclose" onclick="closeModal()">&times;</button>
+      <div class="fx-top">
+        ${avatarHTML(c,'xl')}
+        <div class="fx-id"><h3>${esc(tcase(c.nombre))}</h3>
+          <div class="sub">${esc(tcase(c.cargo||''))}${c.ficha?' · Ficha '+esc(c.ficha):''}${confidencial?(' · Nivel '+esc(nivelPaso(c))):''}</div>
+          <div class="sub" style="opacity:.85">${c.coord?('Jefe inmediato: '+esc(dispName(c.coord))):''}</div>
+          <div class="sub" style="opacity:.85">${c.gerente?('Gerente de área: '+esc(dispName(c.gerente))):''}</div>
+        </div>
+        ${m? `<div class="fx-hero"><div class="num">M${m.id}</div><div class="tier">${m.nombre}</div></div>`:''}
+      </div>
+    </div>
+    <div class="fx-body">
+      <div class="sec">Datos del colaborador</div>
+      <div class="ficha-data" style="margin-bottom:18px">
+        <div class="drow"><span class="k">Departamento</span><span class="v">${esc(tcase(c.depto||'—'))}</span></div>
+        <div class="drow"><span class="k">Sección</span><span class="v">${esc(tcase(c.seccion||'—'))}</span></div>
+        <div class="drow"><span class="k">Área</span><span class="v">${esc(tcase(c.area||'—'))}</span></div>
+        <div class="drow"><span class="k">Profesión</span><span class="v">${esc(tcase(c.profesion||'—'))}</span></div>
+        ${confidencial?`<div class="drow"><span class="k">Nivel y paso</span><span class="v">${esc(nivelPaso(c))}</span></div>`:''}
+        <div class="drow"><span class="k">Antigüedad</span><span class="v">${esc(antigOf(c))}</span></div>
+      </div>
+
+      <div class="sec">Comentarios del jefe inmediato</div>
+      <div class="card pad" style="margin:0 0 18px">
+        ${ev&&ev.justificacion?`<p style="font-size:13px;margin:0">${esc(ev.justificacion)}</p>`:''}
+        ${ev&&ev.actividadLider?`<p style="font-size:13px;margin:${ev.justificacion?'8px':'0'} 0 0"><b>Actividad propuesta por el líder de área:</b> ${esc(ev.actividadLider)}</p>`:''}
+        ${(!ev||(!ev.justificacion&&!ev.actividadLider))?`<div class="muted" style="font-size:13px">Sin comentarios del jefe inmediato.</div>`:''}
+      </div>
+
+      <div class="sec">Evolución previa</div>
+      <div class="timeline">
+        ${(()=>{ const prev=items.filter(it=> !(ev && it.periodo===ev.periodo) ); return prev.length? prev.map(it=>{ const mm=movById(it.tipo); return `<div class="item">
+          <div class="p">${it.periodo} · ${it.origen}</div>
+          <span class="badge" style="background:${mm.bg};color:${mm.mc}">M${mm.id} · ${mm.nombre}</span>
+        </div>`; }).join('') : '<div class="item"><div class="p">Sin histórico · colaborador nuevo</div><span class="badge" style="background:#EEF0F1;color:#6E7479">—</span></div>'; })()}
+      </div>
+
+      ${mode==='precomite'
+        ? `<div class="sec" style="margin-top:20px">Decisión del gerente de área</div>
+           ${(()=>{ const g=(ev&&ev.gerenteNombre)||GER_SCOPE||c.gerente||''; const gn=g?dispName(g):'';
+             return `<div class="fldwrap"><label class="fld">Gerente que decide</label><input id="gAprueba" type="text" value="${esc(gn)}" ${gn?'readonly':''} placeholder="Nombre del gerente">${gn?'<p class="section-note" style="margin:6px 0 0">Predeterminado según el gerente de área asignado al colaborador.</p>':''}</div>`; })()}
+           <div class="fldwrap"><label class="fld">Comentario <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">— necesario para rechazar</span></label><textarea id="gComent" placeholder="Observaciones para el jefe inmediato o el comité…">${esc((ev&&ev.gerenteComentario)||'')}</textarea></div>
+           <div class="fx-comite">
+             <button class="btn-back" onclick="closeModal()">← Volver</button>
+             <button class="btn btn-primary" onclick="decidirPre('${colabId}','aprobado')" style="margin-left:auto">✓ Aprobar y pasar a comité</button>
+             <button class="btn-back" onclick="decidirPre('${colabId}','rechazado')" style="color:var(--danger);border-color:#E4B4AE">Rechazar</button>
+           </div>`
+        : `${ev? `<div class="sec" style="margin-top:20px">Movilidad definida por el comité</div>
+           <p class="section-note">Si el comité no está de acuerdo con lo propuesto, ajusta la movilidad aquí.</p>
+           <select id="comiteMov" onchange="comiteSelMov('${colabId}', this.value)" style="max-width:260px">
+             ${MOVILIDAD.map(x=>`<option value="${x.id}" ${curTipo==x.id?'selected':''}>M${x.id} · ${x.nombre}</option>`).join('')}
+           </select>
+           <div class="sec" style="margin-top:20px">Actividad de Desarrollo propuesta por el comité <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></div>
+           <textarea id="comiteActividad" placeholder="Agrega una actividad o comentario si el comité lo desea…">${esc(actividad)}</textarea>`:''}
+           <div class="fx-comite">
+             <button class="btn-back" onclick="closeModal()">← Volver</button>
+             ${cerrada
+               ? `<div class="comite-seal">✓ Aprobado por el comité · ${fmtDate(ev.fechaComite)}</div><button class="btn-back" onclick="reabrirComite('${colabId}')">Reabrir</button>`
+               : ev
+                 ? `<button class="btn btn-primary" style="margin-left:auto" onclick="aprobarComite('${colabId}')">✓ Aprobar comité — cerrar</button>`
+                 : `<div class="muted" style="font-size:12.5px">Aún no hay movilidad registrada por el jefe inmediato.</div>`}
+           </div>`}
+    </div>`;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+async function decidirPre(colabId, estado){
+  const ev=latestEval(colabId); if(!ev) return;
+  if(isPeriodClosed(ev.periodo)) return toast('El periodo '+ev.periodo+' está cerrado.');
+  const c=DB.colaboradores[colabId]||{};
+  let gName=((document.getElementById('gAprueba')&&document.getElementById('gAprueba').value.trim())||GER_SCOPE||c.gerente||'');
+  gName = gName ? dispName(gName) : '';   // nombre en formato Nombre Apellido (mayúscula inicial)
+  if(!gName) return toast('Indica el gerente que decide.');
+  const cmt=(document.getElementById('gComent')&&document.getElementById('gComent').value.trim())||'';
+  if(estado==='rechazado' && !cmt) return toast('Al rechazar, agrega un comentario.');
+  ev.estado=estado; ev.gerenteNombre=gName; ev.gerenteComentario=cmt; ev.fechaAprobacion=new Date().toISOString();
+  await Store.set('evaluacion:'+ev.id,ev); DB.evaluaciones[ev.id]=ev;
+  toast(estado==='aprobado'?'Aprobado y enviado a comité.':'Rechazado.'); closeModal(); render();
+}
+async function guardarProyecto(colabId){
+  const ev=latestEval(colabId); if(!ev) return;
+  if(isPeriodClosed(ev.periodo)) return toast('El periodo '+ev.periodo+' está cerrado.');
+  const t=document.getElementById('comiteActividad'); if(t){ ev.actividad=t.value.trim(); delete ev.proyecto; }
+  const s=document.getElementById('comiteMov'); if(s) ev.tipoMovilidad=parseInt(s.value)||ev.tipoMovilidad;
+  await Store.set('evaluacion:'+ev.id,ev); DB.evaluaciones[ev.id]=ev; toast('Guardado.'); render();
+}
+async function aprobarComite(colabId){
+  const ev=latestEval(colabId); if(!ev) return;
+  if(isPeriodClosed(ev.periodo)) return toast('El periodo '+ev.periodo+' está cerrado.');
+  const s=document.getElementById('comiteMov'); if(s) ev.tipoMovilidad=parseInt(s.value)||ev.tipoMovilidad;
+  const t=document.getElementById('comiteActividad'); if(t){ ev.actividad=t.value.trim(); delete ev.proyecto; }
+  ev.comiteAprobado=true; ev.estado='aprobado'; ev.fechaComite=new Date().toISOString();
+  if(!ev.fechaAprobacion) ev.fechaAprobacion=ev.fechaComite;
+  await Store.set('evaluacion:'+ev.id,ev); DB.evaluaciones[ev.id]=ev;
+  delete comiteMovSel[colabId];
+  toast('Evaluación aprobada por el comité y archivada en el repositorio.');
+  openFicha(colabId); render();
+}
+async function reabrirComite(colabId){
+  const ev=latestEval(colabId); if(!ev) return;
+  if(isPeriodClosed(ev.periodo)) return toast('El periodo '+ev.periodo+' está cerrado. Reábrelo desde Administrador.');
+  ev.comiteAprobado=false; delete ev.fechaComite;
+  await Store.set('evaluacion:'+ev.id,ev); DB.evaluaciones[ev.id]=ev;
+  toast('Evaluación reabierta.'); openFicha(colabId); render();
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('show'); }
+function confirmModal(msg, danger){
+  return new Promise(resolve=>{
+    document.getElementById('modalBox').innerHTML=`
+      <div class="fx-body" style="padding:26px">
+        <h3 style="font-family:'Space Grotesk';margin:0 0 12px;font-size:18px">Confirmar</h3>
+        <p style="font-size:14px;color:var(--ink-2);white-space:pre-line;margin:0 0 22px;line-height:1.5">${esc(msg)}</p>
+        <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+          <button class="btn-back" id="cfNo">Cancelar</button>
+          <button class="btn ${danger?'btn-danger':'btn-primary'} sm" id="cfYes">Confirmar</button>
+        </div>
+      </div>`;
+    document.getElementById('modalOverlay').classList.add('show');
+    document.getElementById('cfNo').onclick=()=>{ closeModal(); resolve(false); };
+    document.getElementById('cfYes').onclick=()=>{ closeModal(); resolve(true); };
+  });
+}
+
+/* ============ histórico ============ */
+function viewHistorico(){
+  const total = Object.keys(DB.historico).length;
+  return `<section class="view active">
+    <div class="dash-head"><h2>Carga de histórico</h2></div>
+    <div class="card pad">
+      <div class="section-label">Movilidades registradas en el pasado</div>
+      <p class="section-note">Sube un Excel o CSV con el histórico. Sin límite de registros ni periodos: cada carga se suma al histórico existente (<b>${total}</b> registros almacenados).</p>
+      <p class="section-note">Columnas: <code>Colaborador, Ficha, Cargo, Nivel, Periodo, Movilidad(1-7), Fecha, Comentario</code> &nbsp; <a class="tplink mini" id="dlTpl" style="text-decoration:none">Descargar plantilla</a></p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+        <label class="btn-mini-primary">Importar Excel / CSV<input type="file" id="histFile" accept=".xlsx,.xls,.csv" hidden></label>
+      </div>
+      <div id="preview"></div>
+    </div>
+    <div class="table-card" style="margin-top:20px">
+      <div class="th-row"><h3>Registros históricos</h3></div>
+      ${total? `<table><thead><tr><th>Colaborador</th><th>Periodo</th><th>Movilidad</th><th>Fecha</th><th></th></tr></thead><tbody>
+      ${Object.values(DB.historico).sort((a,b)=>b.periodo.localeCompare(a.periodo)).map(h=>{ const c=DB.colaboradores[h.colaboradorId], m=movById(h.tipoMovilidad);
+        return `<tr><td>${c?esc(c.nombre):esc(h.nombreOriginal||'—')}</td><td class="code">${h.periodo}</td><td><span class="badge" style="background:${m?m.bg:'#eee'};color:${m?m.mc:'#888'}">${m?'M'+m.id+' · '+m.nombre:'—'}</span></td><td class="code">${fmtDate(h.fecha)}</td><td><button class="row-act del delHist" data-id="${h.id}">Eliminar</button></td></tr>`; }).join('')}
+      </tbody></table>` : `<div class="empty">Sin cargas todavía.</div>`}
+    </div>
+  </section>`;
+}
+async function readSheet(file){
+  const name=(file.name||'').toLowerCase();
+  const isExcel = name.endsWith('.xlsx')||name.endsWith('.xls')||(file.type&&file.type.includes('sheet'))||(file.type&&file.type.includes('ms-excel'));
+  if(isExcel){
+    await ensureXLSX();
+    if(!window.XLSX){ toast('No se pudo cargar el lector de Excel. Revisa tu conexión.'); return null; }
+    const buf=await file.arrayBuffer(); const wb=XLSX.read(buf,{type:'array',cellDates:true});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    return XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+  }
+  const text=await file.text();
+  return Papa_like(text);
+}
+/* CSV parser mínimo (sin dependencia) */
+function Papa_like(text){
+  const rows=[]; let row=[],cur='',q=false;
+  for(let i=0;i<text.length;i++){ const ch=text[i];
+    if(q){ if(ch==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=ch; }
+    else{ if(ch==='"') q=true; else if(ch===','){ row.push(cur);cur=''; }
+      else if(ch==='\n'){ row.push(cur); rows.push(row); row=[];cur=''; }
+      else if(ch==='\r'){} else cur+=ch; } }
+  if(cur!==''||row.length){ row.push(cur); rows.push(row); }
+  return rows.filter(r=>r.some(c=>String(c).trim()!==''));
+}
+function headerIndex(headerRow){
+  const h=headerRow.map(c=>String(c==null?'':c).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''));
+  return {
+    nombre:h.findIndex(x=>x.includes('nombre')||x.includes('colaborador')),
+    ficha:h.findIndex(x=>x.includes('codigo')||x.includes('ficha')||x.includes('cedula')||x==='id'),
+    cargo:h.findIndex(x=>x.includes('puesto')||x.includes('cargo')),
+    nivel:h.findIndex(x=>x.includes('nivel')),
+    paso:h.findIndex(x=>x.includes('paso')),
+    depto:h.findIndex(x=>x.includes('departamento')||x.startsWith('depto')),
+    area:h.findIndex(x=>x==='area'||x.startsWith('area')),
+    seccion:h.findIndex(x=>x.includes('seccion')),
+    profesion:h.findIndex(x=>x.includes('profesion')),
+    coord:h.findIndex(x=>x.includes('jefe')||x.includes('coord')),
+    correojefe:h.findIndex(x=>(x.includes('correo')||x.includes('mail'))&&(x.includes('jefe')||x.includes('supervisor')||x.includes('inmediato'))),
+    gerente:h.findIndex(x=>x.includes('gerente')&&!x.includes('correo')&&!x.includes('mail')),
+    correoger:h.findIndex(x=>(x.includes('correo')||x.includes('mail'))&&x.includes('gerente')),
+    ingreso:h.findIndex(x=>x.includes('ingreso')||x.includes('contrata')||x.includes('alta')),
+    antig:h.findIndex(x=>x.includes('antigued')||x.includes('antiguedad')),
+    movilidad:h.findIndex(x=>x.includes('movil')),
+    periodo:h.findIndex(x=>x.includes('periodo')||x.includes('semestre')),
+    justif:h.findIndex(x=>x.includes('justif')||x.includes('coment')),
+    fecha:h.findIndex(x=>x.includes('fecha')&&!x.includes('ingreso')&&!x.includes('nacim'))
+  };
+}
+async function onHistFile(file){
+  const rows=await readSheet(file); if(!rows||!rows.length){ toast('El archivo está vacío'); return; }
+  const map=headerIndex(rows[0]); let start = map.nombre>-1 ? 1 : 0;
+  if(map.nombre<0){ Object.assign(map,{nombre:0,ficha:1,cargo:2,nivel:3,periodo:4,movilidad:5,fecha:6,justif:7}); }
+  pendingImport=[];
+  for(let i=start;i<rows.length;i++){ const r=rows[i]; const g=k=>map[k]>=0?String(r[map[k]]==null?'':r[map[k]]).trim():'';
+    const nombre=g('nombre'); if(!nombre) continue;
+    pendingImport.push({nombre, ficha:g('ficha'), cargo:g('cargo'), nivel:g('nivel'),
+      periodo:g('periodo')||currentPeriodo(), tipo:movFromCell(map.movilidad>=0?r[map.movilidad]:''),
+      fecha:toDateStr(map.fecha>=0?r[map.fecha]:''), comentario:g('justif')});
+  }
+  renderPreview();
+}
+function renderPreview(){
+  const a=document.getElementById('preview'); if(!pendingImport.length){ a.innerHTML=''; return; }
+  a.innerHTML = `<div class="section-label" style="font-size:15px;margin:20px 0 8px">Vista previa (${pendingImport.length} filas)</div>
+  <div class="table-card"><table><thead><tr><th>Colaborador</th><th>Periodo</th><th>Movilidad</th><th>Fecha</th></tr></thead><tbody>
+  ${pendingImport.slice(0,50).map(r=>{ const m=movById(r.tipo); return `<tr><td>${esc(r.nombre)}</td><td class="code">${esc(r.periodo)}</td><td>${m?'M'+m.id+' · '+m.nombre:'<span style="color:var(--danger)">tipo inválido</span>'}</td><td class="code">${esc(r.fecha)||'—'}</td></tr>`; }).join('')}
+  </tbody></table></div>
+  ${pendingImport.length>50?`<p class="muted" style="font-size:12px;margin-top:8px">…y ${pendingImport.length-50} filas más.</p>`:''}
+  <button class="btn btn-primary" id="btnImport" style="margin-top:14px">Confirmar carga de ${pendingImport.length} registros</button>`;
+  const bi=document.getElementById('btnImport'); if(bi) bi.onclick=confirmImport;
+}
+async function confirmImport(){
+  let created=0, matched=0;
+  for(const r of pendingImport){
+    if(!movById(r.tipo)) continue;
+    let colab = Object.values(DB.colaboradores).find(c=> (r.ficha && normName(c.ficha)===normName(r.ficha)) || normName(c.nombre)===normName(r.nombre));
+    if(!colab){ const id=uid(); colab={id,nombre:r.nombre,ficha:r.ficha,cargo:r.cargo,nivel:r.nivel,depto:'',coord:'',gerente:'',ingreso:'',foto:null,creadoDesde:'carga_historica'}; await Store.set('colaborador:'+id,colab); DB.colaboradores[id]=colab; created++; }
+    else matched++;
+    const hid=uid(); const h={id:hid, colaboradorId:colab.id, nombreOriginal:r.nombre, periodo:r.periodo||currentPeriodo(), tipoMovilidad:r.tipo, fecha:r.fecha||new Date().toISOString(), fechaCarga:new Date().toISOString(), comentario:r.comentario};
+    await Store.set('historico:'+hid,h); DB.historico[hid]=h;
+  }
+  toast(`Carga completada: ${pendingImport.length} registros (${created} nuevos, ${matched} existentes).`);
+  pendingImport=[]; render();
+}
+function dlHistTpl(){
+  const csv="Colaborador,Ficha,Cargo,Nivel,Periodo,Movilidad,Fecha,Comentario\nJuan Pérez,1024,Analista Comercial,2.1,2025-S2,3,2025-12-15,Cumple con la matriz de crecimiento\n";
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})); a.download='plantilla_historico_movilidad_OLO.csv'; a.click();
+}
+
+/* ============ ADMINISTRADOR (roster de colaboradores) ============ */
+function viewAdmin(){
+  const l=colabList();
+  const conFoto=l.filter(c=>c.foto).length;
+  const conMov=l.filter(c=>evalOf(c.id,adminPeriod)).length;
+  const prevs=prevPeriods(adminPeriod,4);
+  return `<section class="view active av-admin">
+    <div class="dash-head"><h2>Administrador</h2></div>
+    <p class="section-note" style="max-width:840px;margin-top:-8px;margin-bottom:20px">
+      Cargue un <b>solo Excel</b> con los datos del colaborador y una columna de movilidad por periodo. Las fotos se cargan en lote y también puede agregar colaboradores individualmente. Todo queda <b>precargado y compartido</b> para las vistas de coordinador, gerente y comité.
+    </p>
+    <div class="grid">
+      <div>
+        <div class="card pad">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div class="section-label" style="margin:0">Cargar lista (Excel o CSV)</div>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <label class="fld" style="margin:0">Periodo a evaluar</label>
+              <select id="adminPeriodSel" style="width:auto">${periodoOptions().map(p=>`<option ${p===adminPeriod?'selected':''}>${p}</option>`).join('')}</select>
+            </div>
+          </div>
+          <p class="section-note" style="margin-top:8px">Exporta el listado del <b>ERP</b> y súbelo tal cual: se reconocen automáticamente <code>Código, Nombre, Puesto, Jefe Inmediato, Sección, Área, Departamento, Profesión, Niveles, Pasos, Fecha de ingreso y Antigüedad</code>. En el <b>mismo archivo</b> puedes agregar (opcional) <code>Correo Jefe Inmediato, Gerente de Área, Correo Gerente de Área</code> para alimentar correos y aprobaciones. Solo ajusta los encabezados de las <b>columnas de Movilidad</b> según el semestre.</p>
+          <div class="erp-guide">
+            <div class="erp-step"><span class="erp-n">1</span><div>Selecciona arriba el <b>periodo a evaluar</b> (${adminPeriod}). Ese semestre <b>no</b> va en el archivo: lo evalúa cada jefe inmediato.</div></div>
+            <div class="erp-step"><span class="erp-n">2</span><div>El archivo lleva <b>3 columnas de movilidad</b> con los <b>semestres previos</b>, de izquierda (más antiguo) a derecha (más reciente). La última es el semestre inmediatamente anterior:
+              <div class="erp-cols">
+                <span class="pill sinasignar">Movilidad ${prevs[2]}</span>
+                <span class="pill sinasignar">Movilidad ${prevs[1]}</span>
+                <span class="pill" style="background:var(--teal);color:#fff">Movilidad ${prevs[0]}</span>
+              </div>
+            </div></div>
+            <div class="erp-step"><span class="erp-n">3</span><div>Sube el archivo. Si un colaborador trae <b>0</b> (o vacío) en un semestre, significa que aún no era colaborador: se muestra como <b>“—”</b> y no satura la vista.</div></div>
+          </div>
+          <p class="section-note" style="margin-top:6px">Los valores pueden venir como <code>M1…M7</code> (como los da el ERP) o como <code>1…7</code>. Estas columnas alimentan la <b>evolución/histórico</b> de la ficha; el semestre en evaluación lo registra el jefe inmediato.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+            <label class="btn-mini-primary">Importar Excel del ERP<input type="file" id="rosterFile" accept=".xlsx,.xls,.csv" hidden></label>
+            <button class="mini" id="dlRosterTpl">Descargar plantilla de ${adminPeriod}</button>
+          </div>
+        </div>
+
+        <div class="card pad" style="margin-top:20px">
+          <div class="section-label">Cargar fotos (en lote)</div>
+          <p class="section-note">Selecciona las imágenes. Cada archivo debe nombrarse con la <b>ficha</b> del colaborador (p. ej. <code>1024.jpg</code>) o con su nombre, para emparejarlo automáticamente. Las fotos quedan <b>guardadas dentro del sistema</b>.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+            <label class="btn-mini-primary">Subir fotos<input type="file" id="bulkPhotos" accept="image/*" multiple hidden></label>
+          </div>
+          <div class="bulk-status" id="bulkStatus"></div>
+        </div>
+
+        <div class="card pad" style="margin-top:20px">
+          <div class="section-label">Correos y cadena de aprobación</div>
+          <p class="section-note">Toda la información va en <b>un solo Excel</b>. Además de los datos del ERP, incluye (opcional) estas columnas para alimentar los correos y la aprobación: <code>Correo Jefe Inmediato, Gerente de Área, Correo Gerente de Área</code>. Con eso el sistema vincula automáticamente el gerente de cada colaborador y prepara los envíos.</p>
+          <div class="erp-guide">
+            <div class="erp-step"><span class="erp-n">1</span><div>El <b>jefe inmediato</b> (supervisor) realiza la evaluación de su gente.</div></div>
+            <div class="erp-step"><span class="erp-n">2</span><div>El <b>gerente de área</b> aprueba la evaluación del jefe inmediato.</div></div>
+            <div class="erp-step"><span class="erp-n">3</span><div>El <b>comité</b> aprueba en definitiva la evaluación del gerente de área.</div></div>
+          </div>
+          <div class="bulk-status" id="dirStatus" style="margin-top:8px"></div>
+        </div>
+
+        <div class="card pad" style="margin-top:20px" hidden>
+          <div class="section-label">_</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+            <label class="btn-mini-primary">_<input type="file" id="prevFile" accept=".xlsx,.xls,.csv" hidden></label>
+            <button class="mini" id="dlPrevTpl" hidden>_</button>
+          </div>
+          <div id="preview"></div>
+        </div>
+
+        <div class="card pad" style="margin-top:20px">
+          <div class="section-label">Resultado de la carga</div>
+          <div id="preview2"><p class="section-note" style="margin:0">Al importar el Excel verás aquí un resumen de lo cargado.</p></div>
+        </div>
+
+        <div class="card pad" style="margin-top:20px">
+          <div class="section-label">Agregar colaborador individual</div>
+          <div style="display:flex;gap:18px;align-items:flex-start;margin-top:10px;flex-wrap:wrap">
+            <div class="photo-slot" id="photoSlot">Foto<input type="file" id="cFoto" accept="image/*" hidden></div>
+            <div style="flex:1;min-width:260px" class="info-grid">
+              <div><label class="fld">Nombre</label><input type="text" id="r-nombre" placeholder="Nombre completo"></div>
+              <div><label class="fld">Ficha / Cédula</label><input type="text" id="r-ficha" placeholder="No. de ficha"></div>
+              <div><label class="fld">Cargo</label><input type="text" id="r-cargo"></div>
+              <div><label class="fld">Nivel</label><input type="text" id="r-nivel" placeholder="p. ej. 2"></div>
+              <div><label class="fld">Paso</label><input type="text" id="r-paso" placeholder="p. ej. 1"></div>
+              <div><label class="fld">Departamento</label><input type="text" id="r-depto"></div>
+              <div><label class="fld">Jefe inmediato</label><input type="text" id="r-coord"></div>
+              <div><label class="fld">Gerente de área</label><input type="text" id="r-gerente"></div>
+              <div><label class="fld">Fecha de ingreso</label><input type="date" id="r-ingreso"></div>
+            </div>
+          </div>
+          <div style="margin-top:14px;display:flex;gap:10px">
+            <button class="btn-mini-primary" id="btnAddColab">Agregar a la lista</button>
+            <button class="mini" id="btnClearForm">Limpiar</button>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card pad">
+          <p style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 8px">Resumen de carga</p>
+          <div style="display:flex;gap:22px;flex-wrap:wrap">
+            <div><div class="summary-num">${l.length}</div><div class="summary-lbl">colaboradores</div></div>
+            <div><div class="summary-num">${conFoto}</div><div class="summary-lbl">con foto</div></div>
+            <div><div class="summary-num">${conMov}</div><div class="summary-lbl">movilidad ${adminPeriod}</div></div>
+          </div>
+        </div>
+        <div class="card pad" style="margin-top:20px">
+          <p style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px">Jefes inmediatos asignados</p>
+          <div id="coordSummary" style="font-size:13px"></div>
+        </div>
+        <div class="card pad" style="margin-top:20px">
+          <p style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px">Correos y enlaces</p>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 12px">Envía a cada jefe inmediato el enlace para <b>evaluar</b> y a cada gerente de área el enlace para <b>aprobar</b>. Cada quien solo verá a su equipo. Los correos salen del directorio cargado.</p>
+          <button class="btn-mini-primary" style="width:100%;margin-bottom:8px" onclick="openBulkEmail('jefe inmediato')">✉ Enviar evaluación a jefes inmediatos</button>
+          <button class="btn-mini-primary" style="width:100%;margin-bottom:8px" onclick="openBulkEmail('gerente de área')">✉ Enviar enlace a gerentes de área</button>
+          <button class="mini" style="width:100%" onclick="openBulkEmail()">Gestionar todos los envíos</button>
+        </div>
+        <div class="card pad" style="margin-top:20px">
+          <p style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px">Cierre de periodo</p>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 10px">Cuando el comité termina, <b>cierra el periodo ${adminPeriod}</b> para dejarlo en solo lectura: nadie podrá registrar, aprobar ni reabrir evaluaciones de ese semestre. ${isPeriodClosed(adminPeriod)?'<b style="color:var(--danger)">Cerrado.</b>':'<b style="color:var(--ok)">Abierto.</b>'}</p>
+          <button class="${isPeriodClosed(adminPeriod)?'mini':'btn-mini-primary'}" style="width:100%" id="btnTogglePeriod">${isPeriodClosed(adminPeriod)?('Reabrir periodo '+adminPeriod):('Cerrar periodo '+adminPeriod)}</button>
+        </div>
+        <div class="card pad danger-zone" style="margin-top:20px">
+          <p style="font-size:12px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px">Eliminar personas cargadas</p>
+          <p style="font-size:12px;color:var(--muted);margin:0 0 12px"><b>Individual:</b> usa el botón <b>Eliminar</b> en cada fila de la tabla. <b>Masivo:</b> borra todas las personas cargadas junto con sus evaluaciones e histórico. Útil para limpiar los datos usados en el proceso de entrevista/pruebas. Esta acción no se puede deshacer.</p>
+          <button class="btn btn-danger sm" style="width:100%" id="btnClearAll">🗑 Eliminar todas las personas cargadas</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="table-card" style="margin-top:24px">
+      <div class="th-row"><h3>Lista de colaboradores (${l.length})</h3><div class="actions"><input id="rosterSearch" type="text" placeholder="Buscar…" style="width:220px"></div></div>
+      ${l.length? `<table id="rosterTable"><thead><tr><th></th><th>Colaborador</th><th>Cargo / Nivel</th><th>Departamento</th><th>Jefe inmediato</th><th>Gerente de área</th><th>Última movilidad</th><th></th></tr></thead><tbody>
+      ${l.map(c=>rosterRow(c)).join('')}
+      </tbody></table>` : `<div class="empty"><div class="big">Lista vacía</div>Importe un Excel/CSV o agregue colaboradores arriba.</div>`}
+    </div>
+  </section>`;
+}
+function rosterRow(c){
+  const ev=evalOf(c.id,adminPeriod);
+  let estado;
+  if(ev){ const m=movById(ev.tipoMovilidad); estado=`<span class="badge" style="background:${m.bg};color:${m.mc}">M${m.id} · ${m.nombre}</span> <span class="pill ${ev.estado}" style="margin-left:4px">${ev.estado}</span>`; }
+  else { const pv=prevMov(c.id, adminPeriod); if(pv){ const m=movById(pv.tipo); estado=`<span class="badge" style="background:${m.bg};color:${m.mc}">M${m.id} · ${m.nombre}</span> <span class="muted" style="font-size:11px;margin-left:4px">${pv.periodo}</span>`; } else { estado='<span class="muted">—</span>'; } }
+  return `<tr data-name="${esc((c.nombre+' '+(c.ficha||'')+' '+(c.coord||'')+' '+(c.gerente||'')).toLowerCase())}">
+    <td style="width:52px"><span class="rphoto" data-id="${c.id}" title="Cambiar foto" style="cursor:pointer">${avatarHTML(c,'sm')}</span></td>
+    <td><b>${esc(tcase(c.nombre))}</b>${c.ficha?`<div style="font-size:12px;color:var(--muted)">Ficha ${esc(c.ficha)}</div>`:''}</td>
+    <td style="font-size:13px">${esc(tcase(c.cargo||'—'))}${c.nivel?' · N'+esc(c.nivel):''}</td>
+    <td style="font-size:13px;color:var(--ink-2)">${esc(tcase(c.depto||'—'))}</td>
+    <td style="font-size:13px">${esc(dispName(c.coord))}</td>
+    <td style="font-size:13px">${c.gerente?esc(dispName(c.gerente)):'<span class="pill sinasignar">Sin gerente</span>'}</td>
+    <td>${estado}</td>
+    <td style="white-space:nowrap;text-align:right">
+      <button class="row-act openF" data-id="${c.id}">Ver ficha</button>
+      <button class="row-act del delColab" data-id="${c.id}" data-name="${esc(c.nombre).replace(/'/g,'')}">Eliminar</button>
+    </td></tr>`;
+}
+function coordSummaryHTML(){
+  const l=colabList(); const coords={};
+  l.forEach(c=>{ const k=c.coord||'(sin asignar)'; coords[k]=(coords[k]||0)+1; });
+  const keys=Object.keys(coords).sort();
+  if(!keys.length) return '<span class="muted">Aún no hay coordinadores asignados.</span>';
+  return keys.map(k=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line)"><span>${esc(k)}</span><b class="code">${coords[k]}</b></div>`).join('');
+}
+function linkPanelsHTML(){ /* paneles fusionados en el modal de envíos (openBulkEmail) */ }
+function inviteContent(role, name, link){
+  const per=currentPeriodo();
+  const accion = role==='gerente de área' ? 'revisar y aprobar la evaluación de movilidad de su equipo' : 'realizar la evaluación de movilidad de su equipo';
+  const subject=`Movilidad de Colaboradores ${per} — ${role}: ${name}`;
+  const body=
+`Estimado(a) ${name},
+
+Como parte de la gestión de talento de OLO, le corresponde ${accion} para el periodo ${per}. Como ${role}, ingrese al siguiente enlace personalizado, donde verá únicamente a su equipo:
+${link}
+
+Fecha límite de entrega: ${deadlineTxt()}.
+
+Registre con base en hechos observables y en la evidencia de la matriz de crecimiento.
+
+Agradecemos su compromiso con el desarrollo del talento de OLO.
+
+Recursos Humanos — OLO`;
+  return {subject, body};
+}
+function sendInvite(role, name, link){
+  const {subject, body}=inviteContent(role, name, link);
+  openEmailModal(emailOf(name), subject, body);
+}
+/* correo con informe de resultados del equipo de un jefe inmediato (CC gerente) */
+function gerCorreoDeJefe(jefe){ const j=DIR.jefes[normName(jefe)]; return (j&&j.gerenteCorreo)||''; }
+function gerNombreDeJefe(jefe){ const j=DIR.jefes[normName(jefe)]; return (j&&j.gerente)||''; }
+function resultsContent(jefe){
+  const per=currentPeriodo();
+  const team=colabList().filter(c=>c.coord===jefe);
+  const lines=team.map(c=>{ const cl=comiteClasif(c.id); const m=cl?movById(cl.tipo):null; const ev=latestEval(c.id);
+    const estado=ev&&ev.comiteAprobado?'aprobado por comité':(ev&&ev.estado==='aprobado'?'aprobado por gerencia':(ev?'pendiente':'sin evaluar'));
+    return `• ${c.nombre} — ${m?('M'+m.id+' '+m.nombre):'sin clasificar'}${m?' (Acción: '+m.accion+')':''} · ${estado}${ev&&ev.proyecto?`\n   Proyecto: ${ev.proyecto}`:''}`;
+  });
+  const ger=gerNombreDeJefe(jefe);
+  const subject=`Resultados de Movilidad ${per} — Equipo de ${jefe}`;
+  const body=
+`Estimado(a) ${jefe},
+
+Compartimos los resultados de la evaluación de Movilidad de Colaboradores del periodo ${per} para su equipo${ger?`, con copia a ${ger} (gerente de área)`:''}:
+
+${lines.join('\n')||'(Sin colaboradores registrados)'}
+
+Le solicitamos revisar estos resultados y dar seguimiento a los proyectos de desarrollo definidos por el comité.
+
+Recursos Humanos — OLO`;
+  return {subject, body};
+}
+function bulkResultRows(){
+  const l=colabList();
+  const jefes=[...new Set(l.map(c=>c.coord).filter(Boolean))].sort();
+  return jefes.map(j=>({nombre:j, correo:emailOf(j), cc:gerCorreoDeJefe(j), ger:gerNombreDeJefe(j), n:l.filter(c=>c.coord===j).length}));
+}
+function sendResults(jefe){ const {subject,body}=resultsContent(jefe); openEmailModal(emailOf(jefe), subject, body, gerCorreoDeJefe(jefe)); }
+async function bulkOpenResults(){
+  const rows=bulkResultRows();
+  if(!USE_SB){
+    rows.forEach((r,i)=> setTimeout(()=>{ const {subject,body}=resultsContent(r.nombre); const a=document.createElement('a'); a.href=mailtoFor(r.correo,subject,body,r.cc); document.body.appendChild(a); a.click(); a.remove(); }, i*600));
+    toast('Abriendo informes de resultados… (tu navegador puede pedir permiso)');
+    return;
+  }
+  const conMail=rows.filter(r=>r.correo && /@/.test(r.correo));
+  const sin=rows.length-conMail.length;
+  if(!conMail.length){ toast('Ningún jefe tiene correo en el directorio.'); return; }
+  if(!confirm(`Se enviarán ${conMail.length} informe(s) de resultados a jefes inmediatos, con copia a su gerente de área${sin?` (${sin} sin correo se omiten)`:''}.\n\n¿Continuar?`)) return;
+  let ok=0, fail=0;
+  toast('Enviando '+conMail.length+' informe(s)…');
+  for(const r of conMail){
+    const {subject,body}=resultsContent(r.nombre);
+    try{ await sendMailNow(r.correo, subject, body, r.cc); ok++; }catch(e){ console.error('bulkRes',r.correo,e); fail++; }
+  }
+  toast(`Informes enviados: ${ok}${fail?`, ${fail} con error`:''}${sin?`, ${sin} sin correo`:''}`);
+}
+function bulkRows(role){
+  const l=colabList();
+  const names=[...new Set(l.map(c=> role==='gerente de área'? c.gerente : c.coord).filter(Boolean))].sort();
+  return names.map(nm=>({role, nombre:nm, correo:emailOf(nm), link: role==='gerente de área'? gerLink(nm) : coordLink(nm), n: l.filter(c=> (role==='gerente de área'? c.gerente : c.coord)===nm).length}));
+}
+function bulkSection(title, role, viewFn, primary){
+  const rows=bulkRows(role); const per=currentPeriodo();
+  if(!rows.length) return `<div class="sec" style="margin-top:18px">${title}</div><p class="muted" style="font-size:13px">Aún no hay ${role==='gerente de área'?'gerentes de área (carga el directorio de correos)':'jefes inmediatos'}.</p>`;
+  const sin=rows.filter(r=>!r.correo).length;
+  return `<div class="sec" style="margin-top:18px">${title} · ${rows.length}${sin?` · ${sin} sin correo`:''}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button class="${primary?'btn-mini-primary':'mini'}" onclick="bulkOpenAll('${role}')">✉ Enviar a todos (abrir borradores)</button>
+      <button class="mini" onclick="bulkCopyTable('${role}')">⧉ Copiar tabla</button>
+    </div>
+    <div class="table-card"><div style="max-height:230px;overflow:auto"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Equipo</th><th></th></tr></thead><tbody>
+      ${rows.map(r=>{ const s=r.nombre.replace(/'/g,"\\'"); return `<tr><td>${esc(tcase(r.nombre))}</td><td style="font-size:12.5px">${r.correo?esc(r.correo):'<span style="color:var(--danger)">—</span>'}</td><td class="code">${r.n}</td><td style="text-align:right;white-space:nowrap">
+        <button class="mini" onclick="sendInvite('${role}','${esc(s)}','${esc(r.link)}')">✉ Enviar</button>
+        <button class="mini" onclick="${viewFn}('${esc(s)}')">Ver como</button></td></tr>`; }).join('')}
+    </tbody></table></div></div>`;
+}
+function openBulkEmail(focus){
+  const jefes=bulkRows('jefe inmediato');
+  const gers=bulkRows('gerente de área');
+  const opt=r=>`<option value="${esc(r.nombre)}">${esc(tcase(r.nombre))}${r.correo?'':' — sin correo'}</option>`;
+  const sinJ=jefes.filter(r=>!r.correo).length, sinG=gers.filter(r=>!r.correo).length;
+  document.getElementById('modalBox').innerHTML=`
+    <div class="fx-head"><button class="fclose" onclick="closeModal()">&times;</button>
+      <div class="fx-id"><h3>Envíos de correo</h3><div class="sub">Periodo ${currentPeriodo()} · cada persona recibe su enlace y solo ve a su equipo</div></div></div>
+    <div class="fx-body">
+      <div class="sec">Configuración del envío</div>
+      <p class="section-note">${USE_SB?'Los correos salen del sistema (<b>comunicaciones@ologistics.com</b>) y los destinatarios se toman del <b>directorio cargado</b> en el Excel.':'Sin Supabase configurado: los envíos abren borradores en tu cliente de correo.'}</p>
+      <div class="fldwrap"><label class="fld">Fecha límite de entrega (aparece en el mensaje)</label><input id="cfgDeadline" type="date" value="${esc((CFG&&CFG.deadline)||'')}" onchange="saveDeadline(this.value)"></div>
+      ${USE_SB?`<div class="fldwrap"><label class="fld">Probar envío (no afecta a jefes ni gerentes)</label>
+        <input id="mailTestTo" type="text" placeholder="tu-correo@ologistics.com"></div>
+      <button class="mini" onclick="sendTestMail(this)">✉ Enviar prueba</button>`:''}
+
+      <div class="sec" style="margin-top:20px">Envío masivo</div>
+      <p class="section-note">${USE_SB?'Envía el correo a cada persona del listado, con su enlace personalizado. Si alguien no tiene correo en el directorio, se omite.':'Abre un borrador por persona en tu cliente de correo. Si tienes muchos, usa <b>Copiar tabla</b> y pégala en tu herramienta de mail-merge.'}</p>
+      <div class="mail-block">
+        <div class="mail-row" id="mailRowJefe">
+          <div><b>Jefes inmediatos — evalúan</b><span class="muted"> · ${jefes.length}${sinJ?` · ${sinJ} sin correo`:''}</span></div>
+          <div class="mail-acts">
+            <button class="btn-mini-primary" onclick="bulkOpenAll('jefe inmediato')">✉ Enviar a todos</button>
+            <button class="mini" onclick="bulkCopyTable('jefe inmediato')">⧉ Copiar tabla</button>
+          </div>
+        </div>
+        <div class="mail-row" id="mailRowGer">
+          <div><b>Gerentes de área — aprueban</b><span class="muted"> · ${gers.length}${sinG?` · ${sinG} sin correo`:''}</span></div>
+          <div class="mail-acts">
+            <button class="btn-mini-primary" onclick="bulkOpenAll('gerente de área')">✉ Enviar a todos</button>
+            <button class="mini" onclick="bulkCopyTable('gerente de área')">⧉ Copiar tabla</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec" style="margin-top:20px">Envío individual</div>
+      <p class="section-note">Elige a la persona de la lista y prepara su correo. Puedes editar el texto y el destinatario antes de enviarlo.</p>
+      <div class="mail-indiv">
+        <select id="indivSel">
+          <optgroup label="Jefes inmediatos — evaluación">${jefes.map(r=>`<option value="c|${esc(r.nombre)}">${esc(tcase(r.nombre))}${r.correo?'':' — sin correo'}</option>`).join('')||'<option disabled>Sin jefes</option>'}</optgroup>
+          <optgroup label="Gerentes de área — aprobación">${gers.map(r=>`<option value="g|${esc(r.nombre)}">${esc(tcase(r.nombre))}${r.correo?'':' — sin correo'}</option>`).join('')||'<option disabled>Sin gerentes</option>'}</optgroup>
+        </select>
+        <button class="btn-mini-primary" onclick="prepararIndividual()">Preparar correo</button>
+      </div>
+
+      <div class="sec" style="margin-top:20px">Informe de resultados a jefes (CC gerente de área)</div>
+      <p class="section-note">Envía a cada jefe el resultado de su equipo (movilidad, acción y actividad), con copia a su gerente.</p>
+      <div class="mail-indiv">
+        <select id="indivResSel">${jefes.map(opt).join('')||'<option disabled>Sin jefes</option>'}</select>
+        <button class="btn-mini-primary" onclick="prepararResultado()">Preparar informe</button>
+        <button class="mini" onclick="bulkOpenResults()">✉ Enviar a todos</button>
+      </div>
+
+      <div style="margin-top:18px"><button class="btn-back" onclick="closeModal()">← Volver</button></div>
+    </div>`;
+  document.getElementById('modalOverlay').classList.add('show');
+  const fid = focus==='gerente de área' ? 'mailRowGer' : (focus==='jefe inmediato' ? 'mailRowJefe' : null);
+  if(fid){ const el=document.getElementById(fid); if(el){ el.classList.add('mail-row-focus'); setTimeout(()=>{ try{ el.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} }, 60); } }
+}
+function prepararIndividual(){
+  const sel=document.getElementById('indivSel'); if(!sel||!sel.value) return;
+  const k=sel.value.slice(0,1), name=sel.value.slice(2);
+  if(k==='c') sendInvite('jefe inmediato', name, coordLink(name));
+  else sendInvite('gerente de área', name, gerLink(name));
+}
+function prepararResultado(){
+  const sel=document.getElementById('indivResSel'); if(!sel||!sel.value) return;
+  sendResults(sel.value);
+}
+function bulkCopyTable(role){
+  const rows=bulkRows(role);
+  const head=['Correo','Nombre','Asunto','Enlace'].join('\t');
+  const lines=rows.map(r=>{ const {subject}=inviteContent(role,r.nombre,r.link); return [r.correo||'', r.nombre, subject, r.link].join('\t'); });
+  copyText([head].concat(lines).join('\n'));
+}
+async function sendTestMail(btn){
+  const inp=document.getElementById('mailTestTo');
+  const to=(inp?inp.value:'').trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){ toast('Escribe un correo válido para la prueba'); if(inp) inp.focus(); return; }
+  const {subject,body}=inviteContent('jefe inmediato','Nombre de ejemplo', coordLink('Nombre de ejemplo'));
+  const prev=btn.textContent; btn.disabled=true; btn.textContent='Enviando…';
+  try{
+    await sendMailNow(to, '[PRUEBA] '+subject, '*** CORREO DE PRUEBA DEL SISTEMA DE MOVILIDAD — puede ignorarlo ***\n\n'+body);
+    toast('✓ Prueba enviada a '+to+' — revisa tu bandeja (y spam)');
+    btn.textContent='✓ Prueba enviada'; setTimeout(()=>{ btn.disabled=false; btn.textContent=prev; },3000);
+  }catch(e){ console.error(e); toast('Falló la prueba: '+(e.message||'revisa la Edge Function')); btn.disabled=false; btn.textContent=prev; }
+}
+async function bulkOpenAll(role){
+  const rows=bulkRows(role);
+  if(!USE_SB){
+    rows.forEach((r,i)=> setTimeout(()=>{ const {subject,body}=inviteContent(role,r.nombre,r.link); const a=document.createElement('a'); a.href=mailtoFor(r.correo,subject,body); document.body.appendChild(a); a.click(); a.remove(); }, i*600));
+    toast('Abriendo borradores… (tu navegador puede pedir permiso para ventanas múltiples)');
+    return;
+  }
+  const conMail=rows.filter(r=>r.correo && /@/.test(r.correo));
+  const sin=rows.length-conMail.length;
+  if(!conMail.length){ toast('Ninguno tiene correo en el directorio. Carga los correos en el Excel.'); return; }
+  if(!confirm(`Se enviarán ${conMail.length} correo(s) a ${role==='gerente de área'?'gerentes de área':'jefes inmediatos'}${sin?` (${sin} sin correo se omiten)`:''}.\n\nFecha límite en el mensaje: ${deadlineTxt()}\n\n¿Continuar?`)) return;
+  let ok=0, fail=0;
+  toast('Enviando '+conMail.length+' correo(s)…');
+  for(const r of conMail){
+    const {subject,body}=inviteContent(role,r.nombre,r.link);
+    try{ await sendMailNow(r.correo, subject, body); ok++; }catch(e){ console.error('bulk',r.correo,e); fail++; }
+  }
+  toast(`Envío terminado: ${ok} enviado(s)${fail?`, ${fail} con error`:''}${sin?`, ${sin} sin correo`:''}`);
+}
+function openEmailModal(to, subject, body, cc){
+  document.getElementById('modalBox').innerHTML=`
+    <div class="fx-head"><button class="fclose" onclick="closeModal()">&times;</button>
+      <div class="fx-id"><h3>Enviar por correo</h3><div class="sub">Revisa el destinatario y el texto antes de enviar</div></div></div>
+    <div class="fx-body">
+      <p class="section-note">${USE_SB?'Pulsa <b>Enviar ahora</b> y el correo sale del sistema (comunicaciones@ologistics.com). También puedes usar <b>Abrir en correo</b> para enviarlo desde tu cliente.':'Puedes editar el <b>destinatario</b> y el mensaje. Luego pulsa <b>Abrir en correo</b> para enviarlo desde tu cliente; si no abre, usa <b>Copiar</b>.'}</p>
+      <div class="fldwrap"><label class="fld">Para (correo)</label><input id="emailTo" type="text" value="${esc(to||'')}" placeholder="correo@empresa.com"></div>
+      <div class="fldwrap"><label class="fld">CC (opcional)</label><input id="emailCc" type="text" value="${esc(cc||'')}" placeholder="copia@empresa.com"></div>
+      <label class="fld">Mensaje</label>
+      <textarea id="emailBody">${esc(body)}</textarea>
+      <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn-back" onclick="closeModal()">← Volver</button>
+        ${USE_SB?`<button class="btn-mini-primary" id="emailSendNow">✉ Enviar ahora</button>`:''}
+        <a class="${USE_SB?'mini':'btn-mini-primary'}" id="emailOpen" href="${mailtoFor(to,subject,body,cc)}">✉ Abrir en correo</a>
+        <button class="mini" onclick="copyText(document.getElementById('emailBody').value)">Copiar texto</button>
+      </div>
+    </div>`;
+  const upd=()=>{ const t=(document.getElementById('emailTo')||{}).value||''; const b=(document.getElementById('emailBody')||{}).value||''; const c2=(document.getElementById('emailCc')||{}).value||''; document.getElementById('emailOpen').href=mailtoFor(t, subject, b, c2); };
+  ['emailTo','emailCc','emailBody'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input',upd); });
+  const sn=document.getElementById('emailSendNow');
+  if(sn) sn.addEventListener('click', async ()=>{
+    const t=(document.getElementById('emailTo')||{}).value||'';
+    const b=(document.getElementById('emailBody')||{}).value||'';
+    const c2=(document.getElementById('emailCc')||{}).value||'';
+    const prev=sn.textContent; sn.disabled=true; sn.textContent='Enviando…';
+    try{ await sendMailNow(t, subject, b, c2); toast('✓ Correo enviado a '+t); closeModal(); }
+    catch(e){ console.error(e); toast('No se pudo enviar: '+(e.message||'revisa la Edge Function')); sn.disabled=false; sn.textContent=prev; }
+  });
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function applyScopeChrome(){
+  const banner=document.getElementById('scopeBanner'), txt=document.getElementById('scopeText');
+  const isCoord=!!COORD_SCOPE, isGer=!!GER_SCOPE;
+  // subtítulo del header
+  const b=document.querySelector('.logo .txt b'), s=document.querySelector('.logo .txt small');
+  if(isCoord){ s.textContent='Jefe inmediato'; b.textContent=COORD_SCOPE; }
+  else if(isGer){ s.textContent='Gerente de área'; b.textContent=GER_SCOPE; }
+  else { s.textContent='Gestión de talento'; b.textContent='Movilidad de Colaboradores'; }
+  // pestañas permitidas por rol
+  const allowed = isCoord ? ['coordinador'] : isGer ? ['gerente'] : ['coordinador','gerente','comite','repo','admin'];
+  document.querySelectorAll('.tab').forEach(t=>{ t.style.display = allowed.includes(t.dataset.tab)?'':'none'; });
+  if(!allowed.includes(currentTab)) currentTab = allowed[0];
+  // banner de simulación
+  if(simulated && (isCoord||isGer)){ banner.style.display='flex'; txt.innerHTML = isCoord?('Viendo como <b>Coordinador: '+esc(COORD_SCOPE)+'</b> — solo su grupo.'):('Viendo como <b>Gerente de área: '+esc(GER_SCOPE)+'</b> — solo sus colaboradores.'); }
+  else banner.style.display='none';
+}
+function viewAsCoord(name){ COORD_SCOPE=name; GER_SCOPE=null; simulated=true; coordState={colabId:'',periodo:currentPeriodo(),filter:''}; currentTab='coordinador'; applyScopeChrome(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function viewAsGer(name){ GER_SCOPE=name; COORD_SCOPE=null; simulated=true; currentTab='gerente'; applyScopeChrome(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function exitScope(){ COORD_SCOPE=null; GER_SCOPE=null; simulated=false; currentTab='admin'; applyScopeChrome(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function dlPrevTpl(){
+  const csv="Colaborador,Ficha,Periodo,Movilidad,Fecha,Comentario\nJuan Pérez,1024,2024-S1,7,2024-06-30,En adaptación tras ascenso\nJuan Pérez,1024,2024-S2,3,2024-12-15,Cumple con lo esperado\nJuan Pérez,1024,2025-S1,5,2025-06-30,Resultados superiores\n";
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})); a.download='plantilla_movilidades_previas_OLO.csv'; a.click();
+}
+/* Detecta las columnas de movilidad. El ERP exporta varias columnas "Movilidad 1S-2026" (repetidas):
+   se asignan POSICIONALMENTE de izquierda a derecha = periodo actual, luego los anteriores.
+   Si el administrador editó los encabezados con periodos distintos, se respetan esos periodos. */
+function movColumns(headerRow){
+  const raw=[];
+  headerRow.forEach((cell,i)=>{
+    const h=String(cell==null?'':cell).trim().toLowerCase();
+    const isMov = /movil/.test(h) || /^mov\b/.test(h) || /^mov[_\s-]/.test(h) || /^prev\s*\d/.test(h);
+    if(!isMov) return;
+    raw.push({colIdx:i, per: parsePeriodo(h)?fmtPeriodo(parsePeriodo(h)):null});
+  });
+  if(!raw.length) return [];
+  const explicitDistinct = raw.every(c=>c.per) && new Set(raw.map(c=>c.per)).size===raw.length;
+  const N=raw.length;
+  const prevs = prevPeriods(adminPeriod, Math.max(N,3));   // [P-1, P-2, P-3, ...] (más reciente primero)
+  // Todas las columnas del archivo son semestres PREVIOS (histórico). El semestre a evaluar
+  // NO viene en el archivo: lo evalúa el jefe. Posicional: izq→der = más antiguo→más reciente,
+  // por lo que la ÚLTIMA columna es el semestre inmediatamente anterior (P-1).
+  return raw.map((c,idx)=>{
+    const period = explicitDistinct ? c.per : (prevs[N-1-idx] || prevs[0]);
+    return {colIdx:c.colIdx, period, prev:true};
+  });
+}
+async function setHistoricoAdmin(colabId, periodo, tipo){
+  // reemplaza cualquier histórico previo de carga_admin para el mismo colaborador+periodo
+  const dup=Object.values(DB.historico).find(h=>h.colaboradorId===colabId && h.periodo===periodo && h.origen==='carga_admin');
+  const id = dup? dup.id : uid();
+  const h={id, colaboradorId:colabId, periodo, tipoMovilidad:tipo, fecha:new Date().toISOString(), fechaCarga:new Date().toISOString(), comentario:'', origen:'carga_admin'};
+  await Store.set('historico:'+id,h); DB.historico[id]=h;
+}
+async function onRosterFile(file){
+  busy('Leyendo archivo…');
+  try{
+  const rows=await readSheet(file); if(!rows||!rows.length){ toast('El archivo está vacío'); return; }
+  const map=headerIndex(rows[0]); let start = map.nombre>-1 ? 1 : 0;
+  if(map.nombre<0){ Object.assign(map,{nombre:0,ficha:1,cargo:2,nivel:3,depto:4,coord:5,gerente:6,ingreso:7}); }
+  const movCols = movColumns(rows[0]);
+  let created=0, movPrev=0, dirTouched=false;
+  const writes=[];   // [clave, valor] para guardar en lotes al final (evita cientos de await secuenciales)
+  busy('Procesando '+(rows.length-start)+' filas…');
+  for(let i=start;i<rows.length;i++){ const r=rows[i]; const g=k=>map[k]>=0?String(r[map[k]]==null?'':r[map[k]]).trim():'';
+    const nombre=g('nombre'); if(!nombre) continue;
+    const ficha=g('ficha');
+    // Un correo en la columna de nombre no debe guardarse como nombre.
+    let coordRaw=g('coord'), gerRaw=g('gerente');
+    let cj=g('correojefe'), cg=g('correoger');
+    if(coordRaw.includes('@')){ if(!cj) cj=coordRaw.trim().toLowerCase(); coordRaw=''; }
+    if(gerRaw.includes('@')){ if(!cg) cg=gerRaw.trim().toLowerCase(); gerRaw=''; }
+    const nombreTC=tcase(nombre), coordTC=tcase(coordRaw);
+    const hasGerCol = map.gerente>=0;
+    const gerXlsx = tcase(gerRaw);
+    const gerFromDir = DIR.jefes[normName(coordTC)] ? DIR.jefes[normName(coordTC)].gerente : '';
+    const gerTC = gerXlsx || (hasGerCol ? '' : gerFromDir) || '';
+    if(coordTC && (cj || gerTC)){
+      const prev=DIR.jefes[normName(coordTC)]||{};
+      DIR.jefes[normName(coordTC)]={nombre:coordTC, correo:cj||prev.correo||'', gerente:gerTC||prev.gerente||'', gerenteCorreo:cg||prev.gerenteCorreo||''};
+      if(cj) DIR.correos[normName(coordTC)]=cj;
+      if(gerTC && cg) DIR.correos[normName(gerTC)]=cg;
+      dirTouched=true;
+    }
+    let colab=Object.values(DB.colaboradores).find(c=> (ficha && normName(c.ficha)===normName(ficha)) || normName(c.nombre)===normName(nombreTC));
+    if(!colab){ const id=uid(); colab={id,nombre:nombreTC,ficha,cargo:tcase(g('cargo')),nivel:g('nivel'),paso:g('paso'),depto:tcase(g('depto')),area:tcase(g('area')),seccion:tcase(g('seccion')),profesion:tcase(g('profesion')),coord:coordTC,gerente:gerTC,ingreso:toDateStr(map.ingreso>=0?r[map.ingreso]:''),antiguedad:g('antig'),foto:null}; DB.colaboradores[id]=colab; created++; }
+    else { Object.assign(colab,{nombre:nombreTC,cargo:tcase(g('cargo'))||colab.cargo,nivel:g('nivel')||colab.nivel,paso:g('paso')||colab.paso,depto:tcase(g('depto'))||colab.depto,area:tcase(g('area'))||colab.area,seccion:tcase(g('seccion'))||colab.seccion,profesion:tcase(g('profesion'))||colab.profesion,coord:coordTC||colab.coord,gerente:(hasGerCol?(gerXlsx||colab.gerente):(gerTC||colab.gerente)),ingreso:(map.ingreso>=0?toDateStr(r[map.ingreso]):'')||colab.ingreso,antiguedad:g('antig')||colab.antiguedad}); }
+    writes.push(['colaborador:'+colab.id, colab]);
+    // Todas las columnas del archivo son semestres previos (histórico).
+    // Una celda en 0/vacío = no era colaborador ese semestre → no se crea registro (se verá "—").
+    for(const mc of movCols){
+      if(mc.period===adminPeriod) continue;   // el semestre en evaluación no viene del archivo
+      const tipo=movFromCell(r[mc.colIdx]); if(!tipo) continue;
+      const dup=Object.values(DB.historico).find(h=>h.colaboradorId===colab.id && h.periodo===mc.period && h.origen==='carga_admin');
+      const id = dup? dup.id : uid();
+      const hrec={id, colaboradorId:colab.id, periodo:mc.period, tipoMovilidad:tipo, fecha:new Date().toISOString(), fechaCarga:new Date().toISOString(), comentario:'', origen:'carga_admin'};
+      DB.historico[id]=hrec; writes.push(['historico:'+id, hrec]); movPrev++;
+    }
+  }
+  if(dirTouched) writes.push(['directorio', DIR]);
+  busy('Guardando '+writes.length+' registros…');
+  await mapBatched(writes, ([k,v])=>Store.set(k,v), 25);   // guardado en paralelo por lotes
+  const parts=[`${created} colaborador(es)`]; if(movPrev) parts.push(`${movPrev} movilidad(es) previa(s)`); if(dirTouched) parts.push('correos vinculados');
+  const p2=document.getElementById('preview2');
+  if(p2) p2.innerHTML=`<p class="section-note" style="margin:0 0 10px"><b>Carga completada.</b> ${parts.join(' · ')}. El archivo aporta el <b>histórico</b> (semestres previos); el semestre en evaluación (<b>${adminPeriod}</b>) lo registra cada jefe inmediato. Las celdas vacías o en 0 se muestran como “—”.</p><button class="btn-mini-primary" onclick="openBulkEmail('jefe inmediato')">✉ Enviar la evaluación a todos los jefes inmediatos</button>`;
+  toast(`Carga completada: ${parts.join(', ')} ✓`);
+  render();
+  }catch(err){ console.error('onRosterFile',err); toast('Error al procesar el archivo: '+(err&&err.message||err)); }
+  finally{ idle(); }
+}
+async function bulkPhotoUpload(files){
+  if(!files.length) return;
+  busy('Procesando fotos…');
+  try{
+  const st=document.getElementById('bulkStatus'); if(st) st.textContent='Procesando fotos…';
+  const list=colabList(); let matched=0, sinMatch=[]; const writes=[];
+  let done=0;
+  for(const f of files){
+    done++; busy('Procesando fotos… '+done+'/'+files.length);
+    const base=f.name.replace(/\.[a-z0-9]+$/i,''); const key=normName(base); const numKey=String(parseInt(base,10));
+    let colab = list.find(c=>normName(c.ficha)&&normName(c.ficha)===key)
+             || list.find(c=>c.ficha&&/^\d+$/.test(String(parseInt(base,10)))&&String(parseInt(c.ficha,10))===numKey)
+             || list.find(c=>normName(c.nombre)===key)
+             || list.find(c=>normName(c.ficha)&&key.includes(normName(c.ficha)))
+             || list.find(c=>key&&normName(c.nombre)&&(key.includes(normName(c.nombre))||normName(c.nombre).includes(key)));
+    if(!colab){ sinMatch.push(f.name); continue; }
+    const b64=await compressFile(f);
+    if(b64){ colab.foto=b64; DB.colaboradores[colab.id]=colab; writes.push(['colaborador:'+colab.id, colab]); matched++; }
+  }
+  busy('Guardando fotos…');
+  await mapBatched(writes, ([k,v])=>Store.set(k,v), 15);
+  if(st) st.textContent=`${matched} foto(s) vinculada(s).`+(sinMatch.length?` Sin coincidencia: ${sinMatch.slice(0,5).join(', ')}${sinMatch.length>5?'…':''}`:'');
+  toast(matched+' foto(s) cargada(s) ✓');
+  render();
+  }catch(err){ console.error('bulkPhotoUpload',err); toast('Error al cargar fotos: '+(err&&err.message||err)); }
+  finally{ idle(); }
+}
+function attachPhoto(id){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange=async e=>{ const f=e.target.files[0]; if(!f) return; const b64=await compressFile(f); const c=DB.colaboradores[id]; if(c){ c.foto=b64; await Store.set('colaborador:'+id,c); toast('Foto actualizada ✓'); render(); } };
+  inp.click();
+}
+function dlRosterTpl(){
+  const act=adminPeriod, p=prevPeriods(act,3);   // p=[P-1, P-2, P-3]
+  const head=['Código','Nombre','Puesto Descripción','Jefe Inmediato','Correo Jefe Inmediato','Gerente de Area','Correo Gerente de Area','Seccion','Area',
+    'Movilidad '+p[2],'Movilidad '+p[1],'Movilidad '+p[0],
+    'Departamento','Profesion','Niveles Organizacionales','Pasos Salariales','Fecha Ingreso','Antiguedad'];
+  const rows=[
+    ['1216','ALFARO MASIS JOHNNY','APILADORISTA','NUÑEZ PICHARDO GILBERT','gnunez@olo.com','ARGUELLO FELIPE','farguello@olo.com','ALMACEN ORIGINALES','LOGISTICA IN','M7','M5','M3','CENTRO DE DISTRIBUCION','BACHILLER','1','2+','2019-03-01','6 años'],
+    ['0311','ALVARADO SANDI VICTOR','ASESOR DE DESPACHO','HIDALGO ROJAS ORLANDO','ohidalgo@olo.com','ARGUELLO FELIPE','farguello@olo.com','ZONA FRANCA','LOGISTICA IN','0','M3','M5','CENTRO DE DISTRIBUCION','BACHILLER','1','1+','2021-07-10','4 años'],
+  ];
+  const csv=[head].concat(rows).map(r=>r.map(v=>/[",\n]/.test(String(v))?'"'+String(v).replace(/"/g,'""')+'"':v).join(',')).join('\n')+'\n';
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})); a.download='plantilla_movilidad_'+act+'_OLO.csv'; a.click();
+}
+/* ---- Directorio de correos: jefe inmediato (evalúa) y gerente de área (aprueba) ---- */
+async function onDirFile(file){
+  const rows=await readSheet(file); if(!rows||!rows.length){ toast('El archivo está vacío'); return; }
+  const H=rows[0].map(c=>String(c==null?'':c).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''));
+  const idx=(f)=>H.findIndex(f);
+  const jefeName = idx(x=>(x.includes('jefe')||x.includes('supervisor')||x.includes('coord'))&&!x.includes('correo')&&!x.includes('mail'));
+  const jefeMail = idx(x=>(x.includes('correo')||x.includes('mail'))&&(x.includes('jefe')||x.includes('supervisor')||x.includes('coord')));
+  const gerName  = idx(x=>x.includes('gerente')&&!x.includes('correo')&&!x.includes('mail'));
+  const gerMail  = idx(x=>(x.includes('correo')||x.includes('mail'))&&x.includes('gerente'));
+  if(jefeName<0){ toast('No se encontró la columna de Jefe Inmediato en el archivo.'); return; }
+  const dir={jefes:{}, correos:{}};
+  let n=0;
+  for(let i=1;i<rows.length;i++){ const r=rows[i];
+    const jn=String(r[jefeName]==null?'':r[jefeName]).trim(); if(!jn) continue;
+    const jm=jefeMail>=0?String(r[jefeMail]||'').trim():'';
+    const gn=gerName>=0?String(r[gerName]||'').trim():'';
+    const gm=gerMail>=0?String(r[gerMail]||'').trim():'';
+    const jTC=tcase(jn), gTC=tcase(gn);
+    dir.jefes[normName(jTC)]={nombre:jTC, correo:jm, gerente:gTC, gerenteCorreo:gm};
+    if(jm) dir.correos[normName(jTC)]=jm;
+    if(gTC&&gm) dir.correos[normName(gTC)]=gm;
+    n++;
+  }
+  DIR=dir; await Store.set('directorio', dir);
+  // aplica gerente de área a los colaboradores según su jefe inmediato
+  let patched=0;
+  for(const c of Object.values(DB.colaboradores)){ const j=DIR.jefes[normName(c.coord)]; if(j&&j.gerente&&c.gerente!==j.gerente){ c.gerente=j.gerente; await Store.set('colaborador:'+c.id,c); patched++; } }
+  toast(`Directorio cargado: ${n} jefe(s)/gerente(s)${patched?`, ${patched} colaborador(es) vinculados`:''} ✓`);
+  render();
+}
+function dlDirTpl(){
+  const csv='Jefe Inmediato,Correo Jefe Inmediato,Gerente de Area,Correo Gerente de Area\n'+
+    'NUÑEZ PICHARDO GILBERT,gnunez@olo.com,MONTANES YARZA MARY,mmontanes@olo.com\n'+
+    'HIDALGO ROJAS ORLANDO,ohidalgo@olo.com,MONTANES YARZA MARY,mmontanes@olo.com\n';
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})); a.download='plantilla_directorio_correos_OLO.csv'; a.click();
+}
+
+/* ============ event binding ============ */
+function bind(){
+  if(currentTab==='coordinador'){
+    const filter=document.getElementById('coordFilter');
+    if(filter) filter.onchange=()=>{ coordState.filter=filter.value; render(); };
+    const per=document.getElementById('fPeriodo');
+    if(per) per.onchange=()=>{ coordState.periodo=per.value; render(); };
+    const back=document.getElementById('btnBack'); if(back) back.onclick=()=>{ coordState.colabId=''; render(); };
+    document.querySelectorAll('#coordGrid .rcard[data-colab]').forEach(el=> el.onclick=()=>{ coordState.colabId=el.dataset.colab; render(); });
+    // selector de movilidad: actualiza estado seleccionado + resumen visible
+    document.querySelectorAll('.mopt').forEach(el=> el.onclick=()=>{
+      document.querySelectorAll('.mopt').forEach(x=>x.classList.remove('sel')); el.classList.add('sel');
+      const h=document.getElementById('fMov'); if(h) h.value=el.dataset.mov;
+      const m=movById(el.dataset.mov), sm=document.getElementById('movSummary');
+      if(sm){ sm.classList.add('has'); sm.style.setProperty('--mc',m.mc); sm.style.background=m.bg;
+        sm.innerHTML=`<div class="ms-no">M${m.id}</div><div class="ms-txt"><div class="ms-nm">${m.nombre}</div><div class="ms-acc">Acción: ${m.accion}</div></div><div class="ms-tag">Seleccionada</div>`; }
+    });
+    const btn=document.getElementById('btnReg');
+    if(btn) btn.onclick=async()=>{
+      const colaboradorId=coordState.colabId, periodo=coordState.periodo, coordinador=document.getElementById('fCoord').value.trim(),
+        tipoMovilidad=parseInt(document.getElementById('fMov').value), justificacion=document.getElementById('fJust').value.trim(),
+        actividad=(document.getElementById('fActividad')?document.getElementById('fActividad').value.trim():'');
+      const focusInvalid=(id,msg)=>{ const el=document.getElementById(id); if(el){ el.classList.add('field-err'); try{ el.focus(); }catch(e){} try{ el.scrollIntoView({block:'center',behavior:'smooth'}); }catch(e){} el.addEventListener('input',()=>el.classList.remove('field-err'),{once:true}); } toast(msg); };
+      if(!colaboradorId) return toast('Selecciona un colaborador.');
+      if(isPeriodClosed(periodo)) return toast('El periodo '+periodo+' está cerrado. No se pueden registrar cambios.');
+      if(!tipoMovilidad) return focusInvalid('movSummary','Selecciona una movilidad.');
+      if(!justificacion) return focusInvalid('fJust','Completa la justificación.');
+      if(!actividad) return focusInvalid('fActividad','Completa la actividad de desarrollo.');
+      let ev = evalOf(colaboradorId, periodo);
+      const rec = ev || {id:uid(), colaboradorId, periodo, fechaRegistro:new Date().toISOString()};
+      rec.coordinador=coordinador; rec.tipoMovilidad=tipoMovilidad; rec.justificacion=justificacion; rec.actividadLider=actividad; rec.estado='pendiente'; delete rec.fechaAprobacion;
+      await Store.set('evaluacion:'+rec.id,rec); DB.evaluaciones[rec.id]=rec;
+      toast(ev?'Movilidad actualizada y reenviada a aprobación.':'Movilidad enviada a aprobación.'); coordState.colabId=''; render();
+    };
+  }
+  if(currentTab==='gerente'){
+    const fj=document.getElementById('fltJefe'); if(fj) fj.onchange=()=>{ gerFilterJefe=fj.value; render(); };
+    const fg=document.getElementById('fltGer'); if(fg) fg.onchange=()=>{ gerFilterGer=fg.value; render(); };
+    document.querySelectorAll('.apRow').forEach(b=> b.onclick=()=>{ const ev=DB.evaluaciones[b.dataset.id]; if(ev) openFicha(ev.colaboradorId,'precomite'); });
+  }
+  if(currentTab==='comite'){
+    const ps=document.getElementById('comitePeriodSel'); if(ps) ps.onchange=()=>{ comitePeriod=ps.value; render(); };
+    const as=document.getElementById('comiteAreaSel'); if(as) as.onchange=()=>{ comiteFilterArea=as.value; render(); };
+    document.querySelectorAll('.nb-face[data-colab]').forEach(el=> el.onclick=()=>openFicha(el.dataset.colab));
+    const s=document.getElementById('comiteSearch'); if(s) s.oninput=()=>{ const q=s.value.toLowerCase();
+      document.querySelectorAll('.nb-face[data-colab]').forEach(f=>{ const c=DB.colaboradores[f.dataset.colab]; const hit=!q||(c&&c.nombre.toLowerCase().includes(q)); f.style.opacity=hit?'1':'.18'; }); };
+  }
+  if(currentTab==='repo'){ /* botones con onclick inline (robustos dentro de summary) */ }
+  if(currentTab==='admin'){
+    document.getElementById('coordSummary').innerHTML=coordSummaryHTML();
+    linkPanelsHTML();
+    const psel=document.getElementById('adminPeriodSel'); if(psel) psel.onchange=()=>{ adminPeriod=psel.value; render(); };
+    stagedPhoto=null;
+    document.getElementById('dlRosterTpl').onclick=dlRosterTpl;
+    document.getElementById('rosterFile').onchange=e=>{ if(e.target.files[0]) onRosterFile(e.target.files[0]); e.target.value=''; };
+    const ds=document.getElementById('dirStatus'); if(ds){ const n=Object.keys(DIR.jefes||{}).length; ds.textContent=n?`Directorio activo: ${n} jefe(s) inmediato(s) con su gerente de área y correos.`:'Aún sin correos: agrégalos como columnas en el mismo Excel de carga.'; }
+    document.getElementById('bulkPhotos').onchange=e=>{ bulkPhotoUpload([...(e.target.files||[])]); e.target.value=''; };
+    const slot=document.getElementById('photoSlot'), fi=document.getElementById('cFoto');
+    slot.onclick=()=>fi.click();
+    fi.onchange=async e=>{ if(e.target.files[0]){ stagedPhoto=await compressFile(e.target.files[0]); slot.innerHTML=`<img src="${stagedPhoto}">`; } };
+    document.getElementById('btnAddColab').onclick=async()=>{
+      const nombre=document.getElementById('r-nombre').value.trim();
+      if(!nombre) return toast('Ingresa el nombre del colaborador.');
+      const id=uid(); const c={id, nombre:tcase(nombre), ficha:document.getElementById('r-ficha').value.trim(), cargo:tcase(document.getElementById('r-cargo').value.trim()),
+        nivel:document.getElementById('r-nivel').value.trim(), paso:document.getElementById('r-paso').value.trim(), depto:tcase(document.getElementById('r-depto').value.trim()),
+        coord:tcase(document.getElementById('r-coord').value.trim()), gerente:tcase(document.getElementById('r-gerente').value.trim()),
+        ingreso:document.getElementById('r-ingreso').value, foto:stagedPhoto};
+      await Store.set('colaborador:'+id,c); DB.colaboradores[id]=c; toast('Colaborador agregado ✓'); render();
+    };
+    document.getElementById('btnClearForm').onclick=()=>{ ['r-nombre','r-ficha','r-cargo','r-nivel','r-paso','r-depto','r-coord','r-gerente','r-ingreso'].forEach(i=>document.getElementById(i).value=''); stagedPhoto=null; document.getElementById('photoSlot').innerHTML='Foto<input type="file" id="cFoto" accept="image/*" hidden>'; bind(); };
+    document.getElementById('btnClearAll').onclick=async()=>{
+      const l=colabList(); if(!l.length) return toast('No hay personas cargadas.');
+      const ok=await confirmModal(`¿Eliminar las ${l.length} personas cargadas junto con sus evaluaciones e histórico? Esta acción no se puede deshacer.`, true);
+      if(!ok) return;
+      await withBusy('Eliminando…', async()=>{
+        const ids=new Set(l.map(c=>c.id));
+        const writes=[];
+        for(const c of l){ writes.push(['colaborador:'+c.id]); delete DB.colaboradores[c.id]; }
+        for(const e of Object.values(DB.evaluaciones)){ if(ids.has(e.colaboradorId)){ writes.push(['evaluacion:'+e.id]); delete DB.evaluaciones[e.id]; } }
+        for(const hh of Object.values(DB.historico)){ if(ids.has(hh.colaboradorId)){ writes.push(['historico:'+hh.id]); delete DB.historico[hh.id]; } }
+        await mapBatched(writes, ([k])=>Store.del(k), 25);
+      });
+      toast('Personas cargadas eliminadas.'); render();
+    };
+    const bTP=document.getElementById('btnTogglePeriod'); if(bTP) bTP.onclick=async()=>{
+      const closing=!isPeriodClosed(adminPeriod);
+      const ok=await confirmModal(closing
+        ? `¿Cerrar el periodo ${adminPeriod}? Quedará en solo lectura: no se podrán registrar, aprobar ni reabrir evaluaciones de ese semestre.`
+        : `¿Reabrir el periodo ${adminPeriod}? Se podrán volver a editar sus evaluaciones.`, closing);
+      if(!ok) return;
+      await togglePeriodClosed(adminPeriod);
+      toast(closing?`Periodo ${adminPeriod} cerrado.`:`Periodo ${adminPeriod} reabierto.`); render();
+    };
+    document.querySelectorAll('.rphoto').forEach(el=> el.onclick=()=>attachPhoto(el.dataset.id));
+    document.querySelectorAll('.openF').forEach(b=> b.onclick=()=>openFicha(b.dataset.id));
+    document.querySelectorAll('.delColab').forEach(b=> b.onclick=async()=>{
+      const id=b.dataset.id;
+      const ok=await confirmModal(`¿Eliminar a ${b.dataset.name}? Se borrará también su evaluación e histórico. Esta acción no se puede deshacer.`, true);
+      if(!ok) return;
+      const writes=[['colaborador:'+id]];
+      for(const e of Object.values(DB.evaluaciones)){ if(e.colaboradorId===id){ writes.push(['evaluacion:'+e.id]); delete DB.evaluaciones[e.id]; } }
+      for(const hh of Object.values(DB.historico)){ if(hh.colaboradorId===id){ writes.push(['historico:'+hh.id]); delete DB.historico[hh.id]; } }
+      delete DB.colaboradores[id];
+      await mapBatched(writes, ([k])=>Store.del(k), 25);
+      toast('Persona eliminada.'); render();
+    });
+    const rs=document.getElementById('rosterSearch'); if(rs) rs.oninput=()=>{ const q=rs.value.toLowerCase(); document.querySelectorAll('#rosterTable tbody tr').forEach(tr=>{ tr.style.display=tr.dataset.name.includes(q)?'':'none'; }); };
+  }
+}
+document.getElementById('modalOverlay').addEventListener('click',e=>{ if(e.target.id==='modalOverlay') closeModal(); });
+
+/* ============ init ============ */
+(async()=>{
+  try{
+    if(COORD_SCOPE) currentTab='coordinador'; else if(GER_SCOPE) currentTab='gerente';
+    applyScopeChrome(); render();
+    try{ await loadAll(); }catch(e){ console.error('loadAll',e); }
+    ready=true;
+    applyScopeChrome(); render();
+  }catch(err){
+    console.error('init', err);
+    const v=document.getElementById('views');
+    if(v) v.innerHTML='<div style="padding:50px 20px;text-align:center;font-family:Inter,sans-serif;color:#A33A30"><b>No se pudo iniciar la aplicación.</b><br><span style="color:#6B7278;font-size:13px">'+String(err&&err.message||err)+'</span><br><br><span style="color:#6B7278;font-size:13px">Descarga el archivo y ábrelo directamente en tu navegador.</span></div>';
+  }
+})();
+</script>
+</body>
+</html>
