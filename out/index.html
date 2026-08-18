@@ -449,8 +449,28 @@ const Store = {
     if(hasStore){ try{ const r=await withTimeout(window.storage.list(prefix, SHARED), 6000, null); return (r&&r.keys)||[]; }catch(e){ return []; } }
     return Object.keys(mem).filter(k=>k.startsWith(prefix));
   },
+  /* ── getAll: trae key+value en UNA sola query (elimina N round-trips) ── */
+  async getAll(prefix){
+    if(USE_SB){ try{
+      const PAGE=1000; let all=[]; let from=0;
+      while(true){
+        const {data,error}=await sb.from(SB_TABLE).select('key,value').like('key', prefix+'%').range(from, from+PAGE-1);
+        if(error) throw error;
+        if(!data||!data.length) break;
+        all=all.concat(data);
+        if(data.length<PAGE) break;
+        from+=PAGE;
+      }
+      all.forEach(r=>{ mem[r.key]=JSON.stringify(r.value); });
+      return all.map(r=>r.value).filter(Boolean);
+    }catch(e){ console.error('sb getAll',e); return Object.keys(mem).filter(k=>k.startsWith(prefix)).map(k=>{try{return JSON.parse(mem[k]);}catch(x){return null;}}).filter(Boolean); } }
+    if(USE_API){ try{ const r=await apiFetch('/kv?prefix='+encodeURIComponent(prefix)+'&values=1'); if(!r.ok) return []; const d=await r.json(); return (d&&d.items)||[]; }catch(e){ return []; } }
+    if(hasStore){ try{ const keys=await withTimeout(window.storage.list(prefix, SHARED), 6000, null); if(!keys||!keys.keys) return []; const out=[]; for(const k of keys.keys){ const r=await withTimeout(window.storage.get(k, SHARED),3000,null); if(r) try{out.push(JSON.parse(r.value));}catch(x){} } return out; }catch(e){ return []; } }
+    return Object.keys(mem).filter(k=>k.startsWith(prefix)).map(k=>{try{return JSON.parse(mem[k]);}catch(x){return null;}}).filter(Boolean);
+  },
   async get(k){
-    if(USE_SB){ try{ const {data,error}=await sb.from(SB_TABLE).select('value').eq('key',k).maybeSingle(); if(error) throw error; return data?data.value:null; }catch(e){ console.error('sb get',e); return mem[k]?JSON.parse(mem[k]):null; } }
+    if(mem[k]){ try{ return JSON.parse(mem[k]); }catch(x){} }
+    if(USE_SB){ try{ const {data,error}=await sb.from(SB_TABLE).select('value').eq('key',k).maybeSingle(); if(error) throw error; if(data){ mem[k]=JSON.stringify(data.value); } return data?data.value:null; }catch(e){ console.error('sb get',e); return mem[k]?JSON.parse(mem[k]):null; } }
     if(USE_API){ try{ const r=await apiFetch('/kv/'+encodeURIComponent(k)); if(r.status===404) return null; if(!r.ok) return mem[k]?JSON.parse(mem[k]):null; const d=await r.json(); return (d&&d.value!=null)?JSON.parse(d.value):null; }catch(e){ return mem[k]?JSON.parse(mem[k]):null; } }
     if(hasStore){ try{ const r=await withTimeout(window.storage.get(k, SHARED), 6000, null); return r?JSON.parse(r.value):(mem[k]?JSON.parse(mem[k]):null); }catch(e){ return null; } }
     return mem[k]?JSON.parse(mem[k]):null;
@@ -625,15 +645,19 @@ async function mapBatched(keys, fn, size=12){
   return out;
 }
 async function loadAll(){
-  const [cK,eK,hK] = await Promise.all([Store.list('colaborador:'), Store.list('evaluacion:'), Store.list('historico:')]);
-  const cs = await mapBatched(cK, k=>Store.get(k));
-  const es = await mapBatched(eK, k=>Store.get(k));
-  const hs = await mapBatched(hK, k=>Store.get(k));
-  DB.colaboradores={}; cs.filter(Boolean).forEach(c=>DB.colaboradores[c.id]=c);
-  DB.evaluaciones={}; es.filter(Boolean).forEach(e=>DB.evaluaciones[e.id]=e);
-  DB.historico={}; hs.filter(Boolean).forEach(h=>DB.historico[h.id]=h);
-  const d = await Store.get('directorio'); DIR = d && d.jefes ? d : { jefes:{}, correos:{} };
-  const cfg = await Store.get('config'); CFG = (cfg && typeof cfg==='object') ? cfg : { closedPeriods:[] };
+  /* ── Carga optimizada: 5 queries paralelas (key+value) en lugar de N individuales ── */
+  const [cs, es, hs, d, cfg] = await Promise.all([
+    Store.getAll('colaborador:'),
+    Store.getAll('evaluacion:'),
+    Store.getAll('historico:'),
+    Store.get('directorio'),
+    Store.get('config')
+  ]);
+  DB.colaboradores={}; cs.forEach(c=>{ if(c&&c.id) DB.colaboradores[c.id]=c; });
+  DB.evaluaciones={}; es.forEach(e=>{ if(e&&e.id) DB.evaluaciones[e.id]=e; });
+  DB.historico={}; hs.forEach(h=>{ if(h&&h.id) DB.historico[h.id]=h; });
+  DIR = d && d.jefes ? d : { jefes:{}, correos:{} };
+  CFG = (cfg && typeof cfg==='object') ? cfg : { closedPeriods:[] };
   if(!Array.isArray(CFG.closedPeriods)) CFG.closedPeriods=[];
   if(typeof CFG.deadline!=='string') CFG.deadline=CFG.deadline||'';
   ready=true;
@@ -732,8 +756,14 @@ document.querySelectorAll('.tab').forEach(b=> b.addEventListener('click', ()=>{
 function render(){
   if(!ready){ views.innerHTML='<div class="empty"><div class="big">Cargando…</div></div>'; return; }
   const nav=document.querySelector('.tabs'); if(nav) nav.style.display='';
-  views.innerHTML = ({coordinador:viewCoordinador, gerente:viewGerente, comite:viewComite, repo:viewRepo, admin:viewAdmin}[currentTab])();
-  bind();
+  /* ── render optimizado: usa requestAnimationFrame para agrupar actualizaciones ── */
+  if(render._raf) cancelAnimationFrame(render._raf);
+  render._raf = requestAnimationFrame(()=>{
+    render._raf = null;
+    const html = ({coordinador:viewCoordinador, gerente:viewGerente, comite:viewComite, repo:viewRepo, admin:viewAdmin}[currentTab])();
+    views.innerHTML = html;
+    bind();
+  });
 }
 
 /* ============ coordinador ============ */
@@ -2305,12 +2335,15 @@ document.getElementById('modalOverlay').addEventListener('click',e=>{ if(e.targe
 (async()=>{
   try{
     if(COORD_SCOPE) currentTab='coordinador'; else if(GER_SCOPE) currentTab='gerente';
-    applyScopeChrome(); render();
+    applyScopeChrome();
+    busy('Conectando con la base de datos…');
     try{ await loadAll(); }catch(e){ console.error('loadAll',e); }
     ready=true;
+    idle();
     applyScopeChrome(); render();
   }catch(err){
     console.error('init', err);
+    idle();
     const v=document.getElementById('views');
     if(v) v.innerHTML='<div style="padding:50px 20px;text-align:center;font-family:Inter,sans-serif;color:#A33A30"><b>No se pudo iniciar la aplicación.</b><br><span style="color:#6B7278;font-size:13px">'+String(err&&err.message||err)+'</span><br><br><span style="color:#6B7278;font-size:13px">Descarga el archivo y ábrelo directamente en tu navegador.</span></div>';
   }
