@@ -694,7 +694,7 @@ async function resetAllData(){
     for(const k of keys){ await Store.del(k); }
     DB={ colaboradores:{}, evaluaciones:{}, historico:{} };
     DIR={ jefes:{}, correos:{} };
-    comiteMovSel={}; comitePeriod=''; comiteFilterArea=''; gerFilterJefe=''; gerFilterGer='';
+    comiteMovSel={}; comitePeriod=''; comiteFilterArea=''; comiteFilterJefe=''; gerFilterJefe=''; gerFilterGer='';
   });
   toast('Datos borrados. El sistema quedó limpio ✓');
   render();
@@ -960,6 +960,7 @@ function viewGerente(){
 
 /* ============ comité ============ */
 let comiteFilterArea='';
+let comiteFilterJefe='';
 /* agrupa los 7 tipos en 3 familias de acción para la matriz tipo 9-box */
 const MOV_FAMILIAS = [
   {k:'salida', t:'Salida y ajuste', ids:[1,2]},
@@ -974,7 +975,9 @@ function viewComite(){
   const esActivo = (comitePeriod===activo);
   const all = scopedColabList();
   const areas=[...new Set(all.map(c=>c.area||c.depto||'(Sin área)'))].sort();
-  const colabs = comiteFilterArea ? all.filter(c=>(c.area||c.depto||'(Sin área)')===comiteFilterArea) : all;
+  const jefes=[...new Set(all.map(c=>c.coord).filter(Boolean))].sort();
+  let colabs = comiteFilterArea ? all.filter(c=>(c.area||c.depto||'(Sin área)')===comiteFilterArea) : all;
+  if(comiteFilterJefe) colabs = colabs.filter(c=>(c.coord||'')===comiteFilterJefe);
   const cls = colabs.map(c=>({c, cl:comiteClasifFor(c.id, comitePeriod)}));
   const byType={}; MOVILIDAD.forEach(m=>byType[m.id]=[]);
   let clasificados=0;
@@ -989,10 +992,11 @@ function viewComite(){
   return `<section class="view active">
     <div class="toolbar">
       <div><h2 class="tb-title">Comité de Desarrollo</h2>
-        <p class="tb-sub">${esActivo?`Semestre en evaluación · solo colaboradores aprobados por el gerente de área en pre-comité`:`Resultados históricos del semestre ${comitePeriod}`} · ${clasificados} de ${colabs.length} clasificado(s)${comiteFilterArea?(' · '+esc(comiteFilterArea)):''}</p></div>
+        <p class="tb-sub">${esActivo?`Semestre en evaluación · solo colaboradores aprobados por el gerente de área en pre-comité`:`Resultados históricos del semestre ${comitePeriod}`} · ${clasificados} de ${colabs.length} clasificado(s)${comiteFilterArea?(' · '+esc(comiteFilterArea)):''}${comiteFilterJefe?(' · Jefe: '+esc(tcase(comiteFilterJefe))):''}</p></div>
       <div class="tb-right">
         <select id="comitePeriodSel" style="width:auto;max-width:180px">${periodosAvail.map(p=>`<option value="${p}" ${p===comitePeriod?'selected':''}>${p}${p===activo?' · en evaluación':''}</option>`).join('')}</select>
         <select id="comiteAreaSel" style="width:auto;max-width:200px"><option value="">Todas las áreas</option>${areas.map(a=>`<option value="${esc(a)}" ${a===comiteFilterArea?'selected':''}>${esc(a)}</option>`).join('')}</select>
+        <select id="comiteJefeSel" style="width:auto;max-width:200px"><option value="">Todos los jefes inmediatos</option>${jefes.map(j=>`<option value="${esc(j)}" ${j===comiteFilterJefe?'selected':''}>${esc(tcase(j))}</option>`).join('')}</select>
         <input id="comiteSearch" type="text" placeholder="Buscar…" style="width:180px">
       </div>
     </div>
@@ -2263,6 +2267,7 @@ function bind(){
   if(currentTab==='comite'){
     const ps=document.getElementById('comitePeriodSel'); if(ps) ps.onchange=()=>{ comitePeriod=ps.value; render(); };
     const as=document.getElementById('comiteAreaSel'); if(as) as.onchange=()=>{ comiteFilterArea=as.value; render(); };
+    const js=document.getElementById('comiteJefeSel'); if(js) js.onchange=()=>{ comiteFilterJefe=js.value; render(); };
     document.querySelectorAll('.nb-face[data-colab]').forEach(el=> el.onclick=()=>openFicha(el.dataset.colab));
     const s=document.getElementById('comiteSearch'); if(s) s.oninput=()=>{ const q=s.value.toLowerCase();
       document.querySelectorAll('.nb-face[data-colab]').forEach(f=>{ const c=DB.colaboradores[f.dataset.colab]; const hit=!q||(c&&c.nombre.toLowerCase().includes(q)); f.style.opacity=hit?'1':'.18'; }); };
