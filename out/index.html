@@ -660,7 +660,34 @@ async function loadAll(){
   CFG = (cfg && typeof cfg==='object') ? cfg : { closedPeriods:[] };
   if(!Array.isArray(CFG.closedPeriods)) CFG.closedPeriods=[];
   if(typeof CFG.deadline!=='string') CFG.deadline=CFG.deadline||'';
+  /* ── Normalización de nombres: unifica duplicados y corrige N/A ── */
+  fixNames();
   ready=true;
+}
+/* Reglas de normalización de nombres en campos coord/gerente/coordinador:
+   - "Sandoval Leon Miguel" (sin Alejandro) → "Sandoval Leon Miguel Alejandro"
+   - "N/A", "N/a", "n/a" → "Carvajal Jose"
+   Aplica a colaboradores (coord, gerente) y evaluaciones (coordinador). */
+function fixNames(){
+  const RENAMES = {
+    'sandoval leon miguel': 'Sandoval Leon Miguel Alejandro'
+  };
+  const NA_REPLACE = 'Carvajal José';
+  function fix(val){
+    if(!val) return val;
+    const s = String(val).trim();
+    if(/^n\/?a$/i.test(s)) return NA_REPLACE;
+    const key = s.toLowerCase();
+    if(RENAMES[key]) return RENAMES[key];
+    return val;
+  }
+  Object.values(DB.colaboradores).forEach(c=>{
+    if(c.coord) c.coord = fix(c.coord);
+    if(c.gerente) c.gerente = fix(c.gerente);
+  });
+  Object.values(DB.evaluaciones).forEach(e=>{
+    if(e.coordinador) e.coordinador = fix(e.coordinador);
+  });
 }
 function emailOf(name){ return (name && DIR.correos[normName(name)]) || ''; }
 // Cierre oficial de periodo: cuando un semestre se cierra, queda en solo-lectura.
@@ -694,7 +721,7 @@ async function resetAllData(){
     for(const k of keys){ await Store.del(k); }
     DB={ colaboradores:{}, evaluaciones:{}, historico:{} };
     DIR={ jefes:{}, correos:{} };
-    comiteMovSel={}; comitePeriod=''; comiteFilterArea=''; comiteFilterJefe=''; gerFilterJefe=''; gerFilterGer='';
+    comiteMovSel={}; comitePeriod=''; comiteFilterArea=''; comiteFilterJefe=''; comiteHideGerentes=false; gerFilterJefe=''; gerFilterGer='';
   });
   toast('Datos borrados. El sistema quedó limpio ✓');
   render();
@@ -961,6 +988,13 @@ function viewGerente(){
 /* ============ comité ============ */
 let comiteFilterArea='';
 let comiteFilterJefe='';
+let comiteHideGerentes=false;
+/* Determina si un colaborador ES gerente (su nombre aparece como gerente de otros) */
+function isGerente(c){
+  if(!c||!c.nombre) return false;
+  const n = normName(c.nombre);
+  return Object.values(DB.colaboradores).some(x=> x.id!==c.id && normName(x.gerente)===n);
+}
 /* agrupa los 7 tipos en 3 familias de acción para la matriz tipo 9-box */
 const MOV_FAMILIAS = [
   {k:'salida', t:'Salida y ajuste', ids:[1,2]},
@@ -978,6 +1012,7 @@ function viewComite(){
   const jefes=[...new Set(all.map(c=>c.coord).filter(Boolean))].sort();
   let colabs = comiteFilterArea ? all.filter(c=>(c.area||c.depto||'(Sin área)')===comiteFilterArea) : all;
   if(comiteFilterJefe) colabs = colabs.filter(c=>(c.coord||'')===comiteFilterJefe);
+  if(comiteHideGerentes) colabs = colabs.filter(c=>!isGerente(c));
   const cls = colabs.map(c=>({c, cl:comiteClasifFor(c.id, comitePeriod)}));
   const byType={}; MOVILIDAD.forEach(m=>byType[m.id]=[]);
   let clasificados=0;
@@ -997,6 +1032,7 @@ function viewComite(){
         <select id="comitePeriodSel" style="width:auto;max-width:180px">${periodosAvail.map(p=>`<option value="${p}" ${p===comitePeriod?'selected':''}>${p}${p===activo?' · en evaluación':''}</option>`).join('')}</select>
         <select id="comiteAreaSel" style="width:auto;max-width:200px"><option value="">Todas las áreas</option>${areas.map(a=>`<option value="${esc(a)}" ${a===comiteFilterArea?'selected':''}>${esc(a)}</option>`).join('')}</select>
         <select id="comiteJefeSel" style="width:auto;max-width:200px"><option value="">Todos los jefes inmediatos</option>${jefes.map(j=>`<option value="${esc(j)}" ${j===comiteFilterJefe?'selected':''}>${esc(tcase(j))}</option>`).join('')}</select>
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink-2);white-space:nowrap;cursor:pointer"><input type="checkbox" id="comiteHideGer" ${comiteHideGerentes?'checked':''}> Sin Gerentes</label>
         <input id="comiteSearch" type="text" placeholder="Buscar…" style="width:180px">
       </div>
     </div>
@@ -2268,6 +2304,7 @@ function bind(){
     const ps=document.getElementById('comitePeriodSel'); if(ps) ps.onchange=()=>{ comitePeriod=ps.value; render(); };
     const as=document.getElementById('comiteAreaSel'); if(as) as.onchange=()=>{ comiteFilterArea=as.value; render(); };
     const js=document.getElementById('comiteJefeSel'); if(js) js.onchange=()=>{ comiteFilterJefe=js.value; render(); };
+    const hg=document.getElementById('comiteHideGer'); if(hg) hg.onchange=()=>{ comiteHideGerentes=hg.checked; render(); };
     document.querySelectorAll('.nb-face[data-colab]').forEach(el=> el.onclick=()=>openFicha(el.dataset.colab));
     const s=document.getElementById('comiteSearch'); if(s) s.oninput=()=>{ const q=s.value.toLowerCase();
       document.querySelectorAll('.nb-face[data-colab]').forEach(f=>{ const c=DB.colaboradores[f.dataset.colab]; const hit=!q||(c&&c.nombre.toLowerCase().includes(q)); f.style.opacity=hit?'1':'.18'; }); };
