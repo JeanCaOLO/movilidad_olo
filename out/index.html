@@ -783,14 +783,9 @@ document.querySelectorAll('.tab').forEach(b=> b.addEventListener('click', ()=>{
 function render(){
   if(!ready){ views.innerHTML='<div class="empty"><div class="big">Cargando…</div></div>'; return; }
   const nav=document.querySelector('.tabs'); if(nav) nav.style.display='';
-  /* ── render optimizado: usa requestAnimationFrame para agrupar actualizaciones ── */
-  if(render._raf) cancelAnimationFrame(render._raf);
-  render._raf = requestAnimationFrame(()=>{
-    render._raf = null;
-    const html = ({coordinador:viewCoordinador, gerente:viewGerente, comite:viewComite, repo:viewRepo, admin:viewAdmin}[currentTab])();
-    views.innerHTML = html;
-    bind();
-  });
+  const html = ({coordinador:viewCoordinador, gerente:viewGerente, comite:viewComite, repo:viewRepo, admin:viewAdmin}[currentTab])();
+  views.innerHTML = html;
+  bind();
 }
 
 /* ============ coordinador ============ */
@@ -989,24 +984,48 @@ function viewGerente(){
 let comiteFilterArea='';
 let comiteFilterJefe='';
 let comiteHideGerentes=false;
-/* Determina si un colaborador ES gerente (lista explícita de gerentes de área) */
-const GERENTES_AREA = [
-  'araya mesen keyna',
-  'arguello ugalde felipe',
-  'carvajal jose',
-  'castro soto jorge',
-  'cruz gutierrez carlos',
-  'martinez montilla jaime',
-  'montanes yarza mary',
-  'palencia rivero jose',
-  'perez araya ricardo',
-  'sandoval leon miguel alejandro',
-  'vieto meza ignacio'
+/* Determina si un colaborador ES gerente de área.
+   Construye un Set con TODOS los valores normalizados del campo "gerente" de los colaboradores,
+   y compara contra el nombre del colaborador usando normName. 
+   Además agrega una lista explícita como respaldo. */
+const GERENTES_LISTA_RAW = [
+  'Araya Mesen Keyna',
+  'Arguello Ugalde Felipe',
+  'Carvajal José',
+  'Castro Soto Jorge',
+  'Cruz Gutierrez Carlos',
+  'Martinez Montilla Jaime',
+  'Montanes Yarza Mary',
+  'Palencia Rivero Jose',
+  'Perez Araya Ricardo',
+  'Sandoval Leon Miguel Alejandro',
+  'Vieto Meza Ignacio'
 ];
+let _gerentesSet = null;
+let _gerentesArr = null;
+function getGerentesSet(){
+  if(_gerentesSet) return _gerentesSet;
+  _gerentesSet = new Set();
+  /* Valores del campo "gerente" de todos los colaboradores */
+  Object.values(DB.colaboradores).forEach(c=>{
+    if(c.gerente && !/^n\/?a$/i.test(c.gerente.trim())) _gerentesSet.add(normName(c.gerente));
+  });
+  /* Lista explícita */
+  GERENTES_LISTA_RAW.forEach(g=> _gerentesSet.add(normName(g)));
+  _gerentesArr = Array.from(_gerentesSet);
+  return _gerentesSet;
+}
 function isGerente(c){
   if(!c||!c.nombre) return false;
   const n = normName(c.nombre);
-  return GERENTES_AREA.some(g=> normName(g)===n);
+  if(!_gerentesSet) getGerentesSet();
+  if(_gerentesSet.has(n)) return true;
+  /* Comparación parcial: detecta si el nombre contiene un gerente conocido */
+  for(let i=0; i<_gerentesArr.length; i++){
+    const g = _gerentesArr[i];
+    if(g.length>=8 && (n.includes(g) || g.includes(n))) return true;
+  }
+  return false;
 }
 /* agrupa los 7 tipos en 3 familias de acción para la matriz tipo 9-box */
 const MOV_FAMILIAS = [
@@ -1015,6 +1034,7 @@ const MOV_FAMILIAS = [
   {k:'alto', t:'Alto desempeño', ids:[5,6]}
 ];
 function viewComite(){
+  _gerentesSet = null; _gerentesArr = null; /* invalidar caché de gerentes */
   if(!comitePeriod) comitePeriod = comiteActivePeriod();
   const periodosAvail = comitePeriodsAvail();
   if(!periodosAvail.includes(comitePeriod)) comitePeriod = comiteActivePeriod();
