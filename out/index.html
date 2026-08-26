@@ -989,11 +989,24 @@ function viewGerente(){
 let comiteFilterArea='';
 let comiteFilterJefe='';
 let comiteHideGerentes=false;
-/* Determina si un colaborador ES gerente (su nombre aparece como gerente de otros) */
+/* Determina si un colaborador ES gerente (lista explícita de gerentes de área) */
+const GERENTES_AREA = [
+  'araya mesen keyna',
+  'arguello ugalde felipe',
+  'carvajal jose',
+  'castro soto jorge',
+  'cruz gutierrez carlos',
+  'martinez montilla jaime',
+  'montanes yarza mary',
+  'palencia rivero jose',
+  'perez araya ricardo',
+  'sandoval leon miguel alejandro',
+  'vieto meza ignacio'
+];
 function isGerente(c){
   if(!c||!c.nombre) return false;
   const n = normName(c.nombre);
-  return Object.values(DB.colaboradores).some(x=> x.id!==c.id && normName(x.gerente)===n);
+  return GERENTES_AREA.some(g=> normName(g)===n);
 }
 /* agrupa los 7 tipos en 3 familias de acción para la matriz tipo 9-box */
 const MOV_FAMILIAS = [
