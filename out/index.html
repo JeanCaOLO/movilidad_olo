@@ -1521,8 +1521,11 @@ async function confirmImport(){
   pendingImport=[]; render();
 }
 function dlHistTpl(){
-  const csv="Colaborador,Ficha,Cargo,Nivel,Periodo,Movilidad,Fecha,Comentario\nJuan Pérez,1024,Analista Comercial,2.1,2025-S2,3,2025-12-15,Cumple con la matriz de crecimiento\n";
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})); a.download='plantilla_historico_movilidad_OLO.csv'; a.click();
+  const aoa=[
+    ['Colaborador','Ficha','Cargo','Nivel','Periodo','Movilidad','Fecha','Comentario'],
+    ['Juan Pérez','1024','Analista Comercial','2.1','2025-S2','3','2025-12-15','Cumple con la matriz de crecimiento']
+  ];
+  exportAOA(aoa, 'plantilla_historico_movilidad_OLO.xlsx', 'Histórico');
 }
 /* ============ ADMINISTRADOR (roster de colaboradores) ============ */
 function viewAdmin(){
@@ -1921,8 +1924,13 @@ function viewAsCoord(name){ COORD_SCOPE=name; GER_SCOPE=null; simulated=true; co
 function viewAsGer(name){ GER_SCOPE=name; COORD_SCOPE=null; simulated=true; currentTab='gerente'; applyScopeChrome(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
 function exitScope(){ COORD_SCOPE=null; GER_SCOPE=null; simulated=false; currentTab='admin'; applyScopeChrome(); render(); window.scrollTo({top:0,behavior:'smooth'}); }
 function dlPrevTpl(){
-  const csv="Colaborador,Ficha,Periodo,Movilidad,Fecha,Comentario\nJuan Pérez,1024,2024-S1,7,2024-06-30,En adaptación tras ascenso\nJuan Pérez,1024,2024-S2,3,2024-12-15,Cumple con lo esperado\nJuan Pérez,1024,2025-S1,5,2025-06-30,Resultados superiores\n";
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})); a.download='plantilla_movilidades_previas_OLO.csv'; a.click();
+  const aoa=[
+    ['Colaborador','Ficha','Periodo','Movilidad','Fecha','Comentario'],
+    ['Juan Pérez','1024','2024-S1','7','2024-06-30','En adaptación tras ascenso'],
+    ['Juan Pérez','1024','2024-S2','3','2024-12-15','Cumple con lo esperado'],
+    ['Juan Pérez','1024','2025-S1','5','2025-06-30','Resultados superiores']
+  ];
+  exportAOA(aoa, 'plantilla_movilidades_previas_OLO.xlsx', 'Movilidades previas');
 }
 function movColumns(headerRow){
   const raw=[];
@@ -1983,10 +1991,12 @@ async function onMigrateFile(file){
 function normPeriodoMig(s){ const m=String(s==null?'':s).trim().toUpperCase().match(/(\d{4})\D*S?\s*([12])/); return m? m[1]+'-S'+m[2] : (parsePeriodo(s)?fmtPeriodo(parsePeriodo(s)):null); }
 function dlMigrateTpl(){
   const p=prevPeriods(adminPeriod,1)[0]||'2025-S2';
-  const head=['Ficha','Nombre','Periodo','Movilidad'];
-  const rows=[['1216','ALFARO MASIS JOHNNY',p,'M5'],['0311','ALVARADO SANDÍ VÍCTOR',p,'M3']];
-  const csv=[head, ...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
-  saveBlob(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}), 'plantilla_migracion_evaluaciones.csv');
+  const aoa=[
+    ['Ficha','Nombre','Periodo','Movilidad'],
+    ['1216','ALFARO MASIS JOHNNY',p,'M5'],
+    ['0311','ALVARADO SANDÍ VÍCTOR',p,'M3']
+  ];
+  exportAOA(aoa, 'plantilla_migracion_evaluaciones.xlsx', 'Migración');
 }
 async function onRosterFile(file){
   busy('Leyendo archivo…');
@@ -2082,8 +2092,7 @@ function dlRosterTpl(){
     ['1216','ALFARO MASIS JOHNNY','APILADORISTA','NUÑEZ PICHARDO GILBERT','gnunez@olo.com','ARGUELLO FELIPE','farguello@olo.com','ALMACEN ORIGINALES','LOGISTICA IN','M7','M5','M3','CENTRO DE DISTRIBUCION','BACHILLER','1','2+','2019-03-01','6 años'],
     ['0311','ALVARADO SANDI VICTOR','ASESOR DE DESPACHO','HIDALGO ROJAS ORLANDO','ohidalgo@olo.com','ARGUELLO FELIPE','farguello@olo.com','ZONA FRANCA','LOGISTICA IN','0','M3','M5','CENTRO DE DISTRIBUCION','BACHILLER','1','1+','2021-07-10','4 años'],
   ];
-  const csv=[head].concat(rows).map(r=>r.map(v=>/[",\n]/.test(String(v))?'"'+String(v).replace(/"/g,'""')+'"':v).join(',')).join('\n')+'\n';
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})); a.download='plantilla_movilidad_'+act+'_OLO.csv'; a.click();
+  exportAOA([head].concat(rows), 'plantilla_movilidad_'+act+'_OLO.xlsx', 'Movilidad');
 }
 async function onDirFile(file){
   const rows=await readSheet(file); if(!rows||!rows.length){ toast('El archivo está vacío'); return; }
@@ -2114,10 +2123,12 @@ async function onDirFile(file){
   render();
 }
 function dlDirTpl(){
-  const csv='Jefe Inmediato,Correo Jefe Inmediato,Gerente de Area,Correo Gerente de Area\n'+
-    'NUÑEZ PICHARDO GILBERT,gnunez@olo.com,MONTANES YARZA MARY,mmontanes@olo.com\n'+
-    'HIDALGO ROJAS ORLANDO,ohidalgo@olo.com,MONTANES YARZA MARY,mmontanes@olo.com\n';
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})); a.download='plantilla_directorio_correos_OLO.csv'; a.click();
+  const aoa=[
+    ['Jefe Inmediato','Correo Jefe Inmediato','Gerente de Area','Correo Gerente de Area'],
+    ['NUÑEZ PICHARDO GILBERT','gnunez@olo.com','MONTANES YARZA MARY','mmontanes@olo.com'],
+    ['HIDALGO ROJAS ORLANDO','ohidalgo@olo.com','MONTANES YARZA MARY','mmontanes@olo.com']
+  ];
+  exportAOA(aoa, 'plantilla_directorio_correos_OLO.xlsx', 'Directorio');
 }
 /* ============ event binding ============ */
 function bind(){
