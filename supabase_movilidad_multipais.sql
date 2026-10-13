@@ -261,3 +261,37 @@ on conflict (user_id) do update
 --  "olo_mov_pais_de_fila(...) is null" para esos prefijos y tratarlos igual que
 --  a los colaboradores. Déjalo así por ahora para no alterar datos existentes.
 -- ----------------------------------------------------------------------------
+
+-- ============================================================================
+--  (OPCIONAL) NORMALIZACIÓN: etiquetar como CR a los colaboradores sin país
+--  ----------------------------------------------------------------------------
+--  Los colaboradores que ya existían NO tienen el campo `pais` dentro de su JSON;
+--  la app los trata como Costa Rica por defecto. Este bloque los deja ETIQUETADOS
+--  explícitamente como 'CR', SIN tocar a los de Venezuela (value->>'pais' = 'VE').
+--
+--  Es seguro y opcional: funcionalmente la app se comporta igual, pero deja el
+--  país explícito en el dato (se ve la insignia 🇨🇷 y facilita el filtrado por BD).
+--
+--  Paso 1 — Verifica a cuántos vas a afectar (debería dar 181 en tu caso):
+--    select count(*)
+--    from public.olo_movilidad_kv
+--    where key like 'colaborador:%'
+--      and coalesce(nullif(upper(value->>'pais'),''),'') <> 'VE';
+--
+--  Paso 2 — Aplica la etiqueta CR a todos los que NO son VE:
+--    update public.olo_movilidad_kv
+--       set value = jsonb_set(value, '{pais}', '"CR"', true)
+--     where key like 'colaborador:%'
+--       and coalesce(nullif(upper(value->>'pais'),''),'') <> 'VE';
+--
+--  Paso 3 — Verifica el resultado (esperado: CR = 181, VE = 98):
+--    select upper(value->>'pais') as pais, count(*)
+--    from public.olo_movilidad_kv
+--    where key like 'colaborador:%'
+--    group by 1
+--    order by 2 desc;
+--
+--  NOTA: la condición "<> 'VE'" protege a los 98 de Venezuela. Si el conteo del
+--  Paso 1 no coincide con lo esperado, revisa antes de ejecutar el Paso 2
+--  (podría haber otros códigos de país que también pasarían a CR).
+-- ============================================================================
