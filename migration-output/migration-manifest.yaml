@@ -1,0 +1,303 @@
+# Manifest de la migración de Movilidad de Colaboradores (OLO) a AWS.
+# Origen: out/index.html (app HTML + JS vanilla, supabase-js por CDN) sobre el proyecto Supabase
+# iigtulgpbqeypnewmzxz (esquema leído en vivo, solo lectura). Las referencias "index-html-script.js:N"
+# apuntan a la línea N de out/index.html (el <script> extraído conservando la numeración).
+version: 1
+draft: false
+project:
+  name: movilidad-colaboradores
+  slug: movilidad
+  compania: olo
+  label: MOVILIDAD
+  exposure: public
+  public_reason: >-
+    Los jefes inmediatos y gerentes entran por enlaces #c= / #g= que reciben por correo, sin iniciar
+    sesión y desde Internet, y el administrador puede continuar sin iniciar sesión (Camino B del origen).
+    Se conserva el comportamiento tal como está.
+source:
+  framework: static-html
+  language: js
+  router: none
+  monolith: true
+  schema_source: live_db
+target:
+  aws_region: us-east-1
+  api_endpoint_type: REGIONAL
+  frontend_hosting: amplify-static
+  lambda:
+    memory: 512
+    timeout: 30
+    architecture: x86_64
+  cognito:
+    groups: []
+  database:
+    engine: aurora-postgresql
+    rls_mode: backend
+modules:
+- name: movilidad
+  entities:
+  - olo_movilidad_kv
+  use_cases:
+  - ListMovilidadEntriesUseCase
+  - GetMovilidadEntryUseCase
+  - SaveMovilidadEntryUseCase
+  - DeleteMovilidadEntryUseCase
+- name: perfiles
+  entities:
+  - olo_movilidad_usuarios
+  - app_users
+  use_cases:
+  - GetMyCountryProfileUseCase
+  - ResolveCurrentUserUseCase
+- name: notificaciones
+  entities: []
+  use_cases:
+  - SendEvaluationEmailUseCase
+api_endpoints:
+- method: GET
+  path: /movilidad/entries
+  function: ListMovilidadEntries
+  handler: entrypoints.lambda_handlers.movilidad.list_movilidad_entries_handler
+  use_case: ListMovilidadEntriesUseCase
+  module: movilidad
+  auth: none
+  public_reason: Enlaces de jefes/gerentes y administradores; acceso completo como olo_mov_select (true).
+  source:
+  - index-html-script.js:23
+  - index-html-script.js:32
+  - index-html-script.js:67
+- method: GET
+  path: /movilidad/entries/{key}
+  function: GetMovilidadEntry
+  handler: entrypoints.lambda_handlers.movilidad.get_movilidad_entry_handler
+  use_case: GetMovilidadEntryUseCase
+  module: movilidad
+  auth: none
+  public_reason: Enlaces de jefes/gerentes y administradores; acceso completo como olo_mov_select (true).
+  source:
+  - index-html-script.js:48
+- method: PUT
+  path: /movilidad/entries/{key}
+  function: SaveMovilidadEntry
+  handler: entrypoints.lambda_handlers.movilidad.save_movilidad_entry_handler
+  use_case: SaveMovilidadEntryUseCase
+  module: movilidad
+  auth: none
+  public_reason: Enlaces de jefes/gerentes y administradores; acceso completo como olo_mov_insert/update (true).
+  source:
+  - index-html-script.js:55
+- method: DELETE
+  path: /movilidad/entries/{key}
+  function: DeleteMovilidadEntry
+  handler: entrypoints.lambda_handlers.movilidad.delete_movilidad_entry_handler
+  use_case: DeleteMovilidadEntryUseCase
+  module: movilidad
+  auth: none
+  public_reason: Enlaces de jefes/gerentes y administradores; acceso completo como olo_mov_delete (true).
+  source:
+  - index-html-script.js:61
+- method: GET
+  path: /me/country-profile
+  function: GetMyCountryProfile
+  handler: entrypoints.lambda_handlers.perfiles.get_my_country_profile_handler
+  use_case: GetMyCountryProfileUseCase
+  module: perfiles
+  auth: cognito
+  source:
+  - index-html-script.js:174
+  - index-html-script.js:164
+  - index-html-script.js:188
+  - index-html-script.js:196
+- method: POST
+  path: /notifications/evaluation-emails
+  function: SendEvaluationEmail
+  handler: entrypoints.lambda_handlers.notificaciones.send_evaluation_email_handler
+  use_case: SendEvaluationEmailUseCase
+  module: notificaciones
+  auth: none
+  public_reason: >-
+    El administrador puede operar sin iniciar sesión ("Continuar sin iniciar sesión") y en el origen la
+    Edge Function send-eval-email se invocaba con la anon key pública.
+  ses_send: true
+  source:
+  - index-html-script.js:228
+  - supabase/functions/send-eval-email
+async_workers: []
+storage_buckets: []
+realtime:
+  enabled: false
+scheduled_jobs: []
+database_objects:
+  naming_map: database/naming-map.json
+  generation_report: database/generation-report.json
+environment_variables:
+  backend:
+  - ENVIRONMENT
+  - SERVICE_NAME
+  - LOG_LEVEL
+  - DB_SECRET_NAME
+  - DB_NAME
+  - DB_PROXY_ENDPOINT
+  - DB_PORT
+  - DB_SSLMODE
+  - ALLOWED_ORIGINS
+  - SES_FROM_EMAIL
+  frontend:
+  - VITE_API_BASE_URL
+  - VITE_COGNITO_USER_POOL_ID
+  - VITE_COGNITO_CLIENT_ID
+  - VITE_APP_EXPOSURE
+authorization_rules:
+- table: public.olo_movilidad_kv
+  policy: olo_mov_select
+  command: SELECT
+  roles: [anon, authenticated]
+  using: 'true'
+  with_check: null
+  enforced_in: List/GetMovilidadEntryUseCase sin filtro (rutas públicas GET /movilidad/entries*)
+- table: public.olo_movilidad_kv
+  policy: olo_mov_insert
+  command: INSERT
+  roles: [anon, authenticated]
+  using: null
+  with_check: 'true'
+  enforced_in: SaveMovilidadEntryUseCase sin restricción (PUT /movilidad/entries/{key})
+- table: public.olo_movilidad_kv
+  policy: olo_mov_update
+  command: UPDATE
+  roles: [anon, authenticated]
+  using: 'true'
+  with_check: 'true'
+  enforced_in: SaveMovilidadEntryUseCase sin restricción (PUT /movilidad/entries/{key})
+- table: public.olo_movilidad_kv
+  policy: olo_mov_delete
+  command: DELETE
+  roles: [anon, authenticated]
+  using: 'true'
+  with_check: null
+  enforced_in: DeleteMovilidadEntryUseCase sin restricción (DELETE /movilidad/entries/{key})
+- table: public.olo_movilidad_kv
+  policy: olo_mov_kv_anon_select
+  command: SELECT
+  roles: [anon]
+  using: 'true'
+  with_check: null
+  enforced_in: List/GetMovilidadEntryUseCase (rutas públicas; equivalente a olo_mov_select)
+- table: public.olo_movilidad_kv
+  policy: olo_mov_kv_anon_insert
+  command: INSERT
+  roles: [anon]
+  using: null
+  with_check: 'true'
+  enforced_in: SaveMovilidadEntryUseCase (ruta pública; equivalente a olo_mov_insert)
+- table: public.olo_movilidad_kv
+  policy: olo_mov_kv_anon_update
+  command: UPDATE
+  roles: [anon]
+  using: 'true'
+  with_check: 'true'
+  enforced_in: SaveMovilidadEntryUseCase (ruta pública; equivalente a olo_mov_update)
+- table: public.olo_movilidad_kv
+  policy: olo_mov_kv_anon_delete
+  command: DELETE
+  roles: [anon]
+  using: 'true'
+  with_check: null
+  enforced_in: DeleteMovilidadEntryUseCase (ruta pública; equivalente a olo_mov_delete)
+- table: public.olo_movilidad_kv
+  policy: olo_mov_kv_select
+  command: SELECT
+  roles: [authenticated]
+  using: (olo_mov_es_admin() OR (olo_mov_pais_de_fila(key, value) IS NULL) OR (olo_mov_pais_de_fila(key, value)
+    = olo_mov_pais_actual()))
+  with_check: null
+  enforced_in: >-
+    Sin efecto en el origen (se combina con OR con olo_mov_select = true). Acotamiento por país en la
+    interfaz (aplicarPaisDeSesion + GET /me/country-profile), igual que hoy.
+- table: public.olo_movilidad_kv
+  policy: olo_mov_kv_insert
+  command: INSERT
+  roles: [authenticated]
+  using: null
+  with_check: (olo_mov_es_admin() OR (olo_mov_pais_de_fila(key, value) IS NULL) OR (olo_mov_pais_de_fila(key, value)
+    = olo_mov_pais_actual()))
+  enforced_in: Sin efecto en el origen (OR con olo_mov_insert = true); acotamiento por país en la interfaz.
+- table: public.olo_movilidad_kv
+  policy: olo_mov_kv_update
+  command: UPDATE
+  roles: [authenticated]
+  using: (olo_mov_es_admin() OR (olo_mov_pais_de_fila(key, value) IS NULL) OR (olo_mov_pais_de_fila(key, value)
+    = olo_mov_pais_actual()))
+  with_check: (olo_mov_es_admin() OR (olo_mov_pais_de_fila(key, value) IS NULL) OR (olo_mov_pais_de_fila(key, value)
+    = olo_mov_pais_actual()))
+  enforced_in: Sin efecto en el origen (OR con olo_mov_update = true); acotamiento por país en la interfaz.
+- table: public.olo_movilidad_kv
+  policy: olo_mov_kv_delete
+  command: DELETE
+  roles: [authenticated]
+  using: (olo_mov_es_admin() OR (olo_mov_pais_de_fila(key, value) IS NULL) OR (olo_mov_pais_de_fila(key, value)
+    = olo_mov_pais_actual()))
+  with_check: null
+  enforced_in: Sin efecto en el origen (OR con olo_mov_delete = true); acotamiento por país en la interfaz.
+- table: public.olo_movilidad_usuarios
+  policy: olo_mov_usuarios_select
+  command: SELECT
+  roles: [authenticated]
+  using: ((user_id = auth.uid()) OR olo_mov_es_admin())
+  with_check: null
+  enforced_in: GetMyCountryProfileUseCase (solo la fila del principal.user_id; la UI no lista perfiles ajenos)
+structural_changes:
+- >-
+  Frontend: el HTML monolítico (out/index.html) pasa a un proyecto Vite + TypeScript. Por indicación del
+  usuario ("deja la aplicación tal y como está") la UI se conserva en JS vanilla sin portarla a React: mismo
+  marcado, CSS, textos y lógica en src/app/movilidad-app.js; solo cambia la capa de datos.
+- >-
+  Objeto Store (supabase-js sobre olo_movilidad_kv) → src/views/movilidad (movilidad-api +
+  use-movilidad-store-controller) sobre axiosApiGateway, con las mismas cachés y mensajes.
+- >-
+  getAll paginaba con .range() de 1000 filas → paginación por cursor de clave (next_cursor) con tope de
+  4 MB por página (límite de 6 MB de Lambda; los colaboradores llevan la foto en base64).
+- supabase.auth (signInWithPassword/getSession/signOut) → Cognito vía src/views/perfiles (solo administradores).
+- select en olo_movilidad_usuarios → GET /me/country-profile (204 si no hay fila, como maybeSingle()).
+- >-
+  Edge Function send-eval-email (SMTP de Gmail con contraseña de aplicación) → POST
+  /notifications/evaluation-emails con Amazon SES, mismo contrato, reglas, mensajes y cuerpo texto + HTML;
+  remitente "Comunicaciones OLO" <comunicaciones@ologistics.com> sin secretos de Gmail.
+- >-
+  El botón "Generar análisis con IA" llamaba a la Edge Function reco-ia, que no existe en el proyecto
+  Supabase (solo están send-eval-email y quick-responder): siempre fallaba. Se retira el botón; el análisis
+  base de recomendaciones para el comité se conserva.
+- >-
+  Textos de la UI que mencionaban Supabase pasan a decir "servidor". Se eliminan los modos sin backend
+  (window.storage del entorno de artefactos y memoria local), que no aplican con la API desplegada.
+- >-
+  El proyecto Supabase es compartido con otros sistemas (olo_indicadores_*, olo_organigramas_kv,
+  olo_salida_kv, olo_kv, olo_usuarios y la Edge Function quick-responder): quedan fuera de esta migración
+  (database/config.yaml → skip_objects).
+- >-
+  Librerías de cliente (SheetJS xlsx 0.18.5 y jsPDF 2.5.1) y Google Fonts siguen por CDN como en el
+  original; la CSP de Amplify los permite explícitamente.
+incompatibilities:
+- >-
+  Cognito no conserva las contraseñas de Supabase Auth: los 5 usuarios se migran a tbl_app_users con su id
+  original y deben crearse en Cognito; definen una contraseña nueva en el primer ingreso
+  (NEW_PASSWORD_REQUIRED, soportado en el login) y quedan vinculados por email verificado.
+migration_risks:
+- >-
+  Heredado del origen: lectura y escritura completas del almacén sin autenticación (rutas públicas), y
+  las políticas por país no aíslan en la base porque olo_mov_select/insert/update/delete (true) las
+  anulan; el aislamiento por país es solo visual. Mitigado con WAF (rate limit por IP + reglas
+  administradas). Recomendado a futuro: login para todos y aislamiento en el backend.
+- >-
+  POST /notifications/evaluation-emails es público y envía desde el remitente corporativo (como la Edge
+  Function con anon key): riesgo de abuso como relay. Mitigado con WAF rate limit.
+- >-
+  Las Lambdas corren en la VPC: necesitan salida a SES (NAT Gateway o VPC endpoint
+  com.amazonaws.<región>.email-smtp / sesv2).
+- >-
+  CSP de Amplify: script-src requiere 'unsafe-inline' porque la UI conservada usa manejadores onclick
+  inline generados dinámicamente; se permiten cdnjs y Google Fonts.
+- >-
+  aurora_postgresql_data.sql contiene datos personales reales (colaboradores con foto, evaluaciones,
+  correos): no se versiona en git (.gitignore) y debe tratarse como información confidencial.
+pending_errors: []

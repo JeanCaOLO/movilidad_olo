@@ -1,0 +1,29 @@
+{
+  "name": "staging",
+  "app_slug": "staging",
+  "root": ".",
+  "framework": "static-html",
+  "framework_version": null,
+  "language": "ts",
+  "src_dir": "src",
+  "router": {
+    "kind": "react-router",
+    "note": "páginas HTML → rutas de react-router"
+  },
+  "monolith": false,
+  "ui_kits": [],
+  "pages": [
+    "index.html"
+  ],
+  "static_assets": [],
+  "frontend_deploy_target": "amplify-static",
+  "prettier_config": null,
+  "env_files": {},
+  "env_references": [],
+  "supabase_packages": [],
+  "largest_files": [],
+  "supabase": {
+    "dir": null,
+    "edge_functions": []
+  }
+}

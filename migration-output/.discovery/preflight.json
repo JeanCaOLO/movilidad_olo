@@ -1,0 +1,77 @@
+{
+  "project": "C:\\Users\\dpaniagua\\AppData\\Local\\Temp\\claude\\C--Users-dpaniagua-Documents-Migracion-movilidad-olo\\cdb714fd-89a3-45e2-94f6-9a85d7a60d25\\scratchpad\\staging",
+  "python": "3.14.8",
+  "python_ok": true,
+  "package_manager": "npm",
+  "tools": {
+    "node": "v24.21.0",
+    "npm": "11.19.0",
+    "pnpm": null,
+    "yarn": null,
+    "git": null,
+    "docker": null,
+    "sam": null,
+    "aws": null,
+    "cfn-lint": null,
+    "supabase": null,
+    "ruff": null,
+    "jq": null,
+    "psql": "psql (PostgreSQL) 16.4",
+    "initdb": "initdb (PostgreSQL) 16.4",
+    "pg_ctl": "pg_ctl (PostgreSQL) 16.4"
+  },
+  "python_modules": {
+    "yaml": true,
+    "pytest": true,
+    "samtranslator": true,
+    "cfnlint": true,
+    "psycopg": true,
+    "boto3": true
+  },
+  "validations": {
+    "frontend_build": {
+      "status": "available",
+      "reason": ""
+    },
+    "backend_unit_tests": {
+      "status": "available",
+      "reason": ""
+    },
+    "backend_lint": {
+      "status": "NOT VALIDATED",
+      "reason": "Falta ruff"
+    },
+    "sam_validate": {
+      "status": "available",
+      "reason": ""
+    },
+    "cfn_lint": {
+      "status": "available",
+      "reason": ""
+    },
+    "aurora_sql_sandbox": {
+      "status": "available",
+      "reason": ""
+    },
+    "schema_from_live_db": {
+      "status": "NOT VALIDATED",
+      "reason": "Falta .env.supabase con SUPABASE_DB_PASSWORD (+psql) o SUPABASE_ACCESS_TOKEN (python scripts/supabase_connect.py init)"
+    },
+    "schema_from_migrations": {
+      "status": "available",
+      "reason": ""
+    },
+    "backend_integration_tests": {
+      "status": "available",
+      "reason": ""
+    }
+  },
+  "git_uncommitted_changes": null,
+  "supabase_credentials": {
+    "file": ".env.supabase",
+    "exists": false,
+    "fields_set": []
+  },
+  "output_dir_exists": false,
+  "blocking": []
+}

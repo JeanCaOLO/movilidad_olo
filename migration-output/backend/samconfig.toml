@@ -1,0 +1,82 @@
+version = 0.1
+
+[dev.build.parameters]
+cached = true
+parallel = true
+
+[dev.deploy.parameters]
+stack_name = "dev-movilidad-api"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+s3_prefix = "dev-movilidad-api"
+parameter_overrides = [
+  "Environment=dev",
+  "VpcSubnetIds=/dev/movilidad/network/subnets",
+  "LambdaSecurityGroupId=/dev/movilidad/network/lambda-sg",
+  "DbProxyEndpoint=/dev/movilidad/db/proxy-endpoint",
+  "DbSecretName=/dev/movilidad/db/app",
+  "DbName=olo_dev_movilidad_db",
+  "AllowedOrigins=/dev/movilidad/frontend/origin",
+  "SesFromEmail=/dev/movilidad/notifications/from-email",
+]
+tags = [
+  "Project=MOVILIDAD",
+  "Environment=DEV",
+  "Name=dev-movilidad-api",
+]
+
+[qa.build.parameters]
+cached = true
+parallel = true
+
+[qa.deploy.parameters]
+stack_name = "qa-movilidad-api"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+s3_prefix = "qa-movilidad-api"
+parameter_overrides = [
+  "Environment=qa",
+  "VpcSubnetIds=/qa/movilidad/network/subnets",
+  "LambdaSecurityGroupId=/qa/movilidad/network/lambda-sg",
+  "DbProxyEndpoint=/qa/movilidad/db/proxy-endpoint",
+  "DbSecretName=/qa/movilidad/db/app",
+  "DbName=olo_qa_movilidad_db",
+  "AllowedOrigins=/qa/movilidad/frontend/origin",
+  "SesFromEmail=/qa/movilidad/notifications/from-email",
+]
+tags = [
+  "Project=MOVILIDAD",
+  "Environment=QA",
+  "Name=qa-movilidad-api",
+]
+
+[prod.build.parameters]
+cached = true
+parallel = true
+
+[prod.deploy.parameters]
+stack_name = "prod-movilidad-api"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+s3_prefix = "prod-movilidad-api"
+parameter_overrides = [
+  "Environment=prod",
+  "VpcSubnetIds=/prod/movilidad/network/subnets",
+  "LambdaSecurityGroupId=/prod/movilidad/network/lambda-sg",
+  "DbProxyEndpoint=/prod/movilidad/db/proxy-endpoint",
+  "DbSecretName=/prod/movilidad/db/app",
+  "DbName=olo_prd_movilidad_db",
+  "AllowedOrigins=/prod/movilidad/frontend/origin",
+  "SesFromEmail=/prod/movilidad/notifications/from-email",
+]
+tags = [
+  "Project=MOVILIDAD",
+  "Environment=PROD",
+  "Name=prod-movilidad-api",
+]

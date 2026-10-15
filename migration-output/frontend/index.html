@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Movilidad de Colaboradores · OLO</title>
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="app">
+      <div class="app-inner">
+        <div class="logo">
+          <span class="mark"
+            ><img
+              src="data:image/jpeg;base64,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"
+              alt="OLO" /></span
+          ><span class="divider"></span
+          ><span class="txt"
+            ><small>Gestión de talento</small><b>Movilidad de Colaboradores</b></span
+          >
+        </div>
+        <nav class="tabs">
+          <button class="tab active" data-tab="coordinador">Jefe inmediato</button
+          ><button class="tab" data-tab="gerente">Pre-comité</button
+          ><button class="tab" data-tab="comite">Comité</button
+          ><button class="tab" data-tab="repo">Repositorio</button
+          ><button class="tab" data-tab="admin">Administrador</button>
+        </nav>
+      </div>
+    </header>
+    <div class="scope-banner" id="scopeBanner">
+      <span id="scopeText"></span><button onclick="exitScope()">Volver a administrador</button>
+    </div>
+    <main id="views">
+      <div
+        style="
+          padding: 60px 20px;
+          text-align: center;
+          color: #6b7278;
+          font-family: Inter, system-ui, sans-serif;
+        "
+      >
+        Cargando la aplicación…
+      </div>
+    </main>
+    <noscript
+      ><div style="padding: 40px; text-align: center; font-family: sans-serif; color: #a33a30">
+        Esta aplicación necesita JavaScript. Si la ves dentro de una vista previa restringida,
+        descarga el archivo y ábrelo directamente en tu navegador.
+      </div></noscript
+    >
+    <div class="modal-overlay" id="modalOverlay"><div class="modal" id="modalBox"></div></div>
+    <div id="toastRoot"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

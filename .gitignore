@@ -1,0 +1,16 @@
+.env.supabase
+.env
+.env.*
+!.env.example
+
+# Dependencias, builds y cachés
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.aws-sam/
+
+# Datos reales de producción (información personal): se generan con export_data_sql.py
+# y se entregan por un canal seguro, nunca en git.
+migration-output/database/**/aurora_postgresql_data.sql

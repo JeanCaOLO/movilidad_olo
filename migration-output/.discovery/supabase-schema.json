@@ -1,0 +1,2006 @@
+{
+  "format_version": 1,
+  "meta": {
+    "server_version": "17.6",
+    "server_version_num": 170006,
+    "database": "postgres",
+    "generated_at": "2026-10-15T15:45:00.66278+00:00",
+    "source": "live_database",
+    "via": "Management API",
+    "project_ref": "iigtulgpbqeypnewmzxz",
+    "region": "us-east-2"
+  },
+  "schemas": [
+    {
+      "name": "public",
+      "comment": "standard public schema"
+    }
+  ],
+  "extensions": [
+    {
+      "name": "pg_stat_statements",
+      "version": "1.11",
+      "schema": "extensions"
+    },
+    {
+      "name": "pgcrypto",
+      "version": "1.3",
+      "schema": "extensions"
+    },
+    {
+      "name": "supabase_vault",
+      "version": "0.3.1",
+      "schema": "vault"
+    },
+    {
+      "name": "uuid-ossp",
+      "version": "1.1",
+      "schema": "extensions"
+    }
+  ],
+  "enums": [],
+  "domains": [],
+  "composite_types": [],
+  "sequences": [],
+  "tables": [
+    {
+      "schema": "public",
+      "name": "olo_indicadores_kv",
+      "kind": "r",
+      "rls_enabled": true,
+      "rls_forced": false,
+      "comment": null,
+      "row_estimate": 185,
+      "is_partition": false,
+      "partition_parent": null,
+      "partition_bound": null,
+      "partition_key": null,
+      "columns": [
+        {
+          "name": "key",
+          "position": 1,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "value",
+          "position": 2,
+          "type": "jsonb",
+          "type_schema": "pg_catalog",
+          "type_name": "jsonb",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "'{}'::jsonb",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "updated_at",
+          "position": 3,
+          "type": "timestamp with time zone",
+          "type_schema": "pg_catalog",
+          "type_name": "timestamptz",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "now()",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "name": "olo_indicadores_roles",
+      "kind": "r",
+      "rls_enabled": true,
+      "rls_forced": false,
+      "comment": null,
+      "row_estimate": -1,
+      "is_partition": false,
+      "partition_parent": null,
+      "partition_bound": null,
+      "partition_key": null,
+      "columns": [
+        {
+          "name": "id",
+          "position": 1,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "nombre",
+          "position": 2,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "scope",
+          "position": 3,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "'pais'::text",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "pais",
+          "position": 4,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": false,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "created_at",
+          "position": 5,
+          "type": "timestamp with time zone",
+          "type_schema": "pg_catalog",
+          "type_name": "timestamptz",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "now()",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "name": "olo_indicadores_usuarios",
+      "kind": "r",
+      "rls_enabled": true,
+      "rls_forced": false,
+      "comment": null,
+      "row_estimate": -1,
+      "is_partition": false,
+      "partition_parent": null,
+      "partition_bound": null,
+      "partition_key": null,
+      "columns": [
+        {
+          "name": "id",
+          "position": 1,
+          "type": "uuid",
+          "type_schema": "pg_catalog",
+          "type_name": "uuid",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "gen_random_uuid()",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "email",
+          "position": 2,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "nombre",
+          "position": 3,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": false,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "rol_id",
+          "position": 4,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "pass_hash",
+          "position": 5,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "pass_salt",
+          "position": 6,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "activo",
+          "position": 7,
+          "type": "boolean",
+          "type_schema": "pg_catalog",
+          "type_name": "bool",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "true",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "created_at",
+          "position": 8,
+          "type": "timestamp with time zone",
+          "type_schema": "pg_catalog",
+          "type_name": "timestamptz",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "now()",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "updated_at",
+          "position": 9,
+          "type": "timestamp with time zone",
+          "type_schema": "pg_catalog",
+          "type_name": "timestamptz",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "now()",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "name": "olo_kv",
+      "kind": "r",
+      "rls_enabled": true,
+      "rls_forced": false,
+      "comment": null,
+      "row_estimate": 70,
+      "is_partition": false,
+      "partition_parent": null,
+      "partition_bound": null,
+      "partition_key": null,
+      "columns": [
+        {
+          "name": "key",
+          "position": 1,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "value",
+          "position": 2,
+          "type": "jsonb",
+          "type_schema": "pg_catalog",
+          "type_name": "jsonb",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "updated_at",
+          "position": 3,
+          "type": "timestamp with time zone",
+          "type_schema": "pg_catalog",
+          "type_name": "timestamptz",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "now()",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "name": "olo_movilidad_kv",
+      "kind": "r",
+      "rls_enabled": true,
+      "rls_forced": false,
+      "comment": null,
+      "row_estimate": 916,
+      "is_partition": false,
+      "partition_parent": null,
+      "partition_bound": null,
+      "partition_key": null,
+      "columns": [
+        {
+          "name": "key",
+          "position": 1,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "value",
+          "position": 2,
+          "type": "jsonb",
+          "type_schema": "pg_catalog",
+          "type_name": "jsonb",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "updated_at",
+          "position": 3,
+          "type": "timestamp with time zone",
+          "type_schema": "pg_catalog",
+          "type_name": "timestamptz",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "now()",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "name": "olo_movilidad_usuarios",
+      "kind": "r",
+      "rls_enabled": true,
+      "rls_forced": false,
+      "comment": "Asigna a cada usuario autenticado su país. pais NULL o es_admin=true => acceso a todos los países.",
+      "row_estimate": -1,
+      "is_partition": false,
+      "partition_parent": null,
+      "partition_bound": null,
+      "partition_key": null,
+      "columns": [
+        {
+          "name": "user_id",
+          "position": 1,
+          "type": "uuid",
+          "type_schema": "pg_catalog",
+          "type_name": "uuid",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "email",
+          "position": 2,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": false,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "pais",
+          "position": 3,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": false,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "es_admin",
+          "position": 4,
+          "type": "boolean",
+          "type_schema": "pg_catalog",
+          "type_name": "bool",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "false",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "creado_en",
+          "position": 5,
+          "type": "timestamp with time zone",
+          "type_schema": "pg_catalog",
+          "type_name": "timestamptz",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "now()",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "name": "olo_organigramas_kv",
+      "kind": "r",
+      "rls_enabled": true,
+      "rls_forced": false,
+      "comment": null,
+      "row_estimate": 9,
+      "is_partition": false,
+      "partition_parent": null,
+      "partition_bound": null,
+      "partition_key": null,
+      "columns": [
+        {
+          "name": "key",
+          "position": 1,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "value",
+          "position": 2,
+          "type": "jsonb",
+          "type_schema": "pg_catalog",
+          "type_name": "jsonb",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "updated_at",
+          "position": 3,
+          "type": "timestamp with time zone",
+          "type_schema": "pg_catalog",
+          "type_name": "timestamptz",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "now()",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "name": "olo_salida_kv",
+      "kind": "r",
+      "rls_enabled": false,
+      "rls_forced": false,
+      "comment": null,
+      "row_estimate": 94,
+      "is_partition": false,
+      "partition_parent": null,
+      "partition_bound": null,
+      "partition_key": null,
+      "columns": [
+        {
+          "name": "key",
+          "position": 1,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "value",
+          "position": 2,
+          "type": "jsonb",
+          "type_schema": "pg_catalog",
+          "type_name": "jsonb",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "updated_at",
+          "position": 3,
+          "type": "timestamp with time zone",
+          "type_schema": "pg_catalog",
+          "type_name": "timestamptz",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "now()",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "name": "olo_usuarios",
+      "kind": "r",
+      "rls_enabled": true,
+      "rls_forced": false,
+      "comment": null,
+      "row_estimate": -1,
+      "is_partition": false,
+      "partition_parent": null,
+      "partition_bound": null,
+      "partition_key": null,
+      "columns": [
+        {
+          "name": "usuario",
+          "position": 1,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "clave",
+          "position": 2,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "rol",
+          "position": 3,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": true,
+          "default": null,
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "pais",
+          "position": 4,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": false,
+          "default": "''::text",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "nombre",
+          "position": 5,
+          "type": "text",
+          "type_schema": "pg_catalog",
+          "type_name": "text",
+          "type_kind": "b",
+          "not_null": false,
+          "default": "''::text",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "activo",
+          "position": 6,
+          "type": "boolean",
+          "type_schema": "pg_catalog",
+          "type_name": "bool",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "true",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        },
+        {
+          "name": "creado_en",
+          "position": 7,
+          "type": "timestamp with time zone",
+          "type_schema": "pg_catalog",
+          "type_name": "timestamptz",
+          "type_kind": "b",
+          "not_null": true,
+          "default": "now()",
+          "identity": "",
+          "identity_options": null,
+          "generated": "",
+          "generation_expression": null,
+          "collation": null,
+          "comment": null,
+          "inherited": false
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    {
+      "schema": "public",
+      "table": "olo_indicadores_kv",
+      "name": "olo_indicadores_kv_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (key)",
+      "columns": [
+        "key"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_indicadores_roles",
+      "name": "olo_ind_roles_scope_chk",
+      "type": "c",
+      "definition": "CHECK ((scope = ANY (ARRAY['global'::text, 'pais'::text, 'admin'::text])))",
+      "columns": [
+        "scope"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_indicadores_roles",
+      "name": "olo_indicadores_roles_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "columns": [
+        "id"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_indicadores_usuarios",
+      "name": "olo_indicadores_usuarios_rol_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (rol_id) REFERENCES olo_indicadores_roles(id)",
+      "columns": [
+        "rol_id"
+      ],
+      "ref_schema": "public",
+      "ref_table": "olo_indicadores_roles",
+      "ref_columns": [
+        "id"
+      ],
+      "on_update": "a",
+      "on_delete": "a",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_indicadores_usuarios",
+      "name": "olo_indicadores_usuarios_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (id)",
+      "columns": [
+        "id"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_indicadores_usuarios",
+      "name": "olo_indicadores_usuarios_email_key",
+      "type": "u",
+      "definition": "UNIQUE (email)",
+      "columns": [
+        "email"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_kv",
+      "name": "olo_kv_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (key)",
+      "columns": [
+        "key"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_movilidad_kv_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (key)",
+      "columns": [
+        "key"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_usuarios",
+      "name": "olo_movilidad_usuarios_user_id_fkey",
+      "type": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+      "columns": [
+        "user_id"
+      ],
+      "ref_schema": "auth",
+      "ref_table": "users",
+      "ref_columns": [
+        "id"
+      ],
+      "on_update": "a",
+      "on_delete": "c",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_usuarios",
+      "name": "olo_movilidad_usuarios_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (user_id)",
+      "columns": [
+        "user_id"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_organigramas_kv",
+      "name": "olo_organigramas_kv_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (key)",
+      "columns": [
+        "key"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "olo_salida_kv_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (key)",
+      "columns": [
+        "key"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_usuarios",
+      "name": "olo_usuarios_pais_chk",
+      "type": "c",
+      "definition": "CHECK ((((rol = 'pais'::text) AND (COALESCE(pais, ''::text) <> ''::text)) OR (rol = ANY (ARRAY['admin'::text, 'global'::text]))))",
+      "columns": [
+        "rol",
+        "pais"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_usuarios",
+      "name": "olo_usuarios_rol_check",
+      "type": "c",
+      "definition": "CHECK ((rol = ANY (ARRAY['admin'::text, 'global'::text, 'pais'::text])))",
+      "columns": [
+        "rol"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_usuarios",
+      "name": "olo_usuarios_pkey",
+      "type": "p",
+      "definition": "PRIMARY KEY (usuario)",
+      "columns": [
+        "usuario"
+      ],
+      "ref_schema": null,
+      "ref_table": null,
+      "ref_columns": null,
+      "on_update": " ",
+      "on_delete": " ",
+      "deferrable": false,
+      "deferred": false,
+      "validated": true,
+      "inherited": false
+    }
+  ],
+  "indexes": [
+    {
+      "schema": "public",
+      "table": "olo_indicadores_kv",
+      "table_kind": "r",
+      "name": "olo_indicadores_kv_value_gin",
+      "definition": "CREATE INDEX olo_indicadores_kv_value_gin ON public.olo_indicadores_kv USING gin (value)",
+      "unique": false,
+      "columns": [
+        "value"
+      ],
+      "has_expressions": false,
+      "predicate": null,
+      "is_partition_child": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_indicadores_usuarios",
+      "table_kind": "r",
+      "name": "olo_ind_usuarios_email_idx",
+      "definition": "CREATE INDEX olo_ind_usuarios_email_idx ON public.olo_indicadores_usuarios USING btree (lower(email))",
+      "unique": false,
+      "columns": null,
+      "has_expressions": true,
+      "predicate": null,
+      "is_partition_child": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_kv",
+      "table_kind": "r",
+      "name": "olo_kv_prefix_idx",
+      "definition": "CREATE INDEX olo_kv_prefix_idx ON public.olo_kv USING btree (key text_pattern_ops)",
+      "unique": false,
+      "columns": [
+        "key"
+      ],
+      "has_expressions": false,
+      "predicate": null,
+      "is_partition_child": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "table_kind": "r",
+      "name": "olo_movilidad_kv_prefix_idx",
+      "definition": "CREATE INDEX olo_movilidad_kv_prefix_idx ON public.olo_movilidad_kv USING btree (key text_pattern_ops)",
+      "unique": false,
+      "columns": [
+        "key"
+      ],
+      "has_expressions": false,
+      "predicate": null,
+      "is_partition_child": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_organigramas_kv",
+      "table_kind": "r",
+      "name": "olo_organigramas_kv_prefix_idx",
+      "definition": "CREATE INDEX olo_organigramas_kv_prefix_idx ON public.olo_organigramas_kv USING btree (key text_pattern_ops)",
+      "unique": false,
+      "columns": [
+        "key"
+      ],
+      "has_expressions": false,
+      "predicate": null,
+      "is_partition_child": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "table_kind": "r",
+      "name": "olo_salida_kv_prefix_idx",
+      "definition": "CREATE INDEX olo_salida_kv_prefix_idx ON public.olo_salida_kv USING btree (key text_pattern_ops)",
+      "unique": false,
+      "columns": [
+        "key"
+      ],
+      "has_expressions": false,
+      "predicate": null,
+      "is_partition_child": false
+    }
+  ],
+  "views": [],
+  "materialized_views": [],
+  "functions": [
+    {
+      "schema": "public",
+      "name": "olo_indicadores_set_updated_at",
+      "kind": "f",
+      "arguments": "",
+      "identity_arguments": "",
+      "result": "trigger",
+      "language": "plpgsql",
+      "volatility": "v",
+      "security_definer": false,
+      "strict": false,
+      "leakproof": false,
+      "parallel": "u",
+      "cost": 100,
+      "rows": 0,
+      "returns_set": false,
+      "config": null,
+      "source": "\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n",
+      "definition": "CREATE OR REPLACE FUNCTION public.olo_indicadores_set_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n$function$\n",
+      "comment": null
+    },
+    {
+      "schema": "public",
+      "name": "olo_indicadores_usuarios_touch",
+      "kind": "f",
+      "arguments": "",
+      "identity_arguments": "",
+      "result": "trigger",
+      "language": "plpgsql",
+      "volatility": "v",
+      "security_definer": false,
+      "strict": false,
+      "leakproof": false,
+      "parallel": "u",
+      "cost": 100,
+      "rows": 0,
+      "returns_set": false,
+      "config": null,
+      "source": "\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n",
+      "definition": "CREATE OR REPLACE FUNCTION public.olo_indicadores_usuarios_touch()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n$function$\n",
+      "comment": null
+    },
+    {
+      "schema": "public",
+      "name": "olo_kv_touch",
+      "kind": "f",
+      "arguments": "",
+      "identity_arguments": "",
+      "result": "trigger",
+      "language": "plpgsql",
+      "volatility": "v",
+      "security_definer": false,
+      "strict": false,
+      "leakproof": false,
+      "parallel": "u",
+      "cost": 100,
+      "rows": 0,
+      "returns_set": false,
+      "config": null,
+      "source": "\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n",
+      "definition": "CREATE OR REPLACE FUNCTION public.olo_kv_touch()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n$function$\n",
+      "comment": null
+    },
+    {
+      "schema": "public",
+      "name": "olo_mov_es_admin",
+      "kind": "f",
+      "arguments": "",
+      "identity_arguments": "",
+      "result": "boolean",
+      "language": "sql",
+      "volatility": "s",
+      "security_definer": true,
+      "strict": false,
+      "leakproof": false,
+      "parallel": "u",
+      "cost": 100,
+      "rows": 0,
+      "returns_set": false,
+      "config": [
+        "search_path=public"
+      ],
+      "source": "\r\n  select coalesce(\r\n    (select u.es_admin or u.pais is null\r\n       from public.olo_movilidad_usuarios u\r\n      where u.user_id = auth.uid()),\r\n    false)\r\n",
+      "definition": "CREATE OR REPLACE FUNCTION public.olo_mov_es_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\n  select coalesce(\r\n    (select u.es_admin or u.pais is null\r\n       from public.olo_movilidad_usuarios u\r\n      where u.user_id = auth.uid()),\r\n    false)\r\n$function$\n",
+      "comment": null
+    },
+    {
+      "schema": "public",
+      "name": "olo_mov_pais_actual",
+      "kind": "f",
+      "arguments": "",
+      "identity_arguments": "",
+      "result": "text",
+      "language": "sql",
+      "volatility": "s",
+      "security_definer": true,
+      "strict": false,
+      "leakproof": false,
+      "parallel": "u",
+      "cost": 100,
+      "rows": 0,
+      "returns_set": false,
+      "config": [
+        "search_path=public"
+      ],
+      "source": "\r\n  select u.pais\r\n  from public.olo_movilidad_usuarios u\r\n  where u.user_id = auth.uid()\r\n",
+      "definition": "CREATE OR REPLACE FUNCTION public.olo_mov_pais_actual()\n RETURNS text\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\n  select u.pais\r\n  from public.olo_movilidad_usuarios u\r\n  where u.user_id = auth.uid()\r\n$function$\n",
+      "comment": null
+    },
+    {
+      "schema": "public",
+      "name": "olo_mov_pais_de_fila",
+      "kind": "f",
+      "arguments": "k text, v jsonb",
+      "identity_arguments": "k text, v jsonb",
+      "result": "text",
+      "language": "sql",
+      "volatility": "i",
+      "security_definer": false,
+      "strict": false,
+      "leakproof": false,
+      "parallel": "u",
+      "cost": 100,
+      "rows": 0,
+      "returns_set": false,
+      "config": null,
+      "source": "\r\n  select case\r\n           when k like 'colaborador:%'\r\n             then coalesce(nullif(upper(v->>'pais'), ''), 'CR')\r\n           else null                      -- claves no-colaborador: sin país\r\n         end\r\n",
+      "definition": "CREATE OR REPLACE FUNCTION public.olo_mov_pais_de_fila(k text, v jsonb)\n RETURNS text\n LANGUAGE sql\n IMMUTABLE\nAS $function$\r\n  select case\r\n           when k like 'colaborador:%'\r\n             then coalesce(nullif(upper(v->>'pais'), ''), 'CR')\r\n           else null                      -- claves no-colaborador: sin país\r\n         end\r\n$function$\n",
+      "comment": null
+    },
+    {
+      "schema": "public",
+      "name": "olo_movilidad_kv_touch",
+      "kind": "f",
+      "arguments": "",
+      "identity_arguments": "",
+      "result": "trigger",
+      "language": "plpgsql",
+      "volatility": "v",
+      "security_definer": false,
+      "strict": false,
+      "leakproof": false,
+      "parallel": "u",
+      "cost": 100,
+      "rows": 0,
+      "returns_set": false,
+      "config": null,
+      "source": "\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n",
+      "definition": "CREATE OR REPLACE FUNCTION public.olo_movilidad_kv_touch()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n$function$\n",
+      "comment": null
+    },
+    {
+      "schema": "public",
+      "name": "olo_organigramas_kv_touch",
+      "kind": "f",
+      "arguments": "",
+      "identity_arguments": "",
+      "result": "trigger",
+      "language": "plpgsql",
+      "volatility": "v",
+      "security_definer": false,
+      "strict": false,
+      "leakproof": false,
+      "parallel": "u",
+      "cost": 100,
+      "rows": 0,
+      "returns_set": false,
+      "config": null,
+      "source": "\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n",
+      "definition": "CREATE OR REPLACE FUNCTION public.olo_organigramas_kv_touch()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n$function$\n",
+      "comment": null
+    },
+    {
+      "schema": "public",
+      "name": "olo_salida_kv_touch",
+      "kind": "f",
+      "arguments": "",
+      "identity_arguments": "",
+      "result": "trigger",
+      "language": "plpgsql",
+      "volatility": "v",
+      "security_definer": false,
+      "strict": false,
+      "leakproof": false,
+      "parallel": "u",
+      "cost": 100,
+      "rows": 0,
+      "returns_set": false,
+      "config": null,
+      "source": "\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n",
+      "definition": "CREATE OR REPLACE FUNCTION public.olo_salida_kv_touch()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nbegin\r\n  new.updated_at = now();\r\n  return new;\r\nend;\r\n$function$\n",
+      "comment": null
+    }
+  ],
+  "aggregates": [],
+  "triggers": [
+    {
+      "schema": "public",
+      "table": "olo_indicadores_kv",
+      "name": "trg_olo_indicadores_kv_updated",
+      "definition": "CREATE TRIGGER trg_olo_indicadores_kv_updated BEFORE UPDATE ON public.olo_indicadores_kv FOR EACH ROW EXECUTE FUNCTION olo_indicadores_set_updated_at()",
+      "function_schema": "public",
+      "function_name": "olo_indicadores_set_updated_at",
+      "enabled": "O",
+      "is_child": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_indicadores_usuarios",
+      "name": "trg_olo_ind_usuarios_touch",
+      "definition": "CREATE TRIGGER trg_olo_ind_usuarios_touch BEFORE UPDATE ON public.olo_indicadores_usuarios FOR EACH ROW EXECUTE FUNCTION olo_indicadores_usuarios_touch()",
+      "function_schema": "public",
+      "function_name": "olo_indicadores_usuarios_touch",
+      "enabled": "O",
+      "is_child": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_kv",
+      "name": "trg_olo_kv_touch",
+      "definition": "CREATE TRIGGER trg_olo_kv_touch BEFORE UPDATE ON public.olo_kv FOR EACH ROW EXECUTE FUNCTION olo_kv_touch()",
+      "function_schema": "public",
+      "function_name": "olo_kv_touch",
+      "enabled": "O",
+      "is_child": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "trg_olo_movilidad_kv_touch",
+      "definition": "CREATE TRIGGER trg_olo_movilidad_kv_touch BEFORE UPDATE ON public.olo_movilidad_kv FOR EACH ROW EXECUTE FUNCTION olo_movilidad_kv_touch()",
+      "function_schema": "public",
+      "function_name": "olo_movilidad_kv_touch",
+      "enabled": "O",
+      "is_child": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_organigramas_kv",
+      "name": "trg_olo_organigramas_kv_touch",
+      "definition": "CREATE TRIGGER trg_olo_organigramas_kv_touch BEFORE UPDATE ON public.olo_organigramas_kv FOR EACH ROW EXECUTE FUNCTION olo_organigramas_kv_touch()",
+      "function_schema": "public",
+      "function_name": "olo_organigramas_kv_touch",
+      "enabled": "O",
+      "is_child": false
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "trg_olo_salida_kv_touch",
+      "definition": "CREATE TRIGGER trg_olo_salida_kv_touch BEFORE UPDATE ON public.olo_salida_kv FOR EACH ROW EXECUTE FUNCTION olo_salida_kv_touch()",
+      "function_schema": "public",
+      "function_name": "olo_salida_kv_touch",
+      "enabled": "O",
+      "is_child": false
+    }
+  ],
+  "policies": [
+    {
+      "schema": "public",
+      "table": "olo_indicadores_kv",
+      "name": "olo_indicadores_kv_all",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "ALL",
+      "using": "true",
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_indicadores_roles",
+      "name": "olo_ind_roles_all",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "ALL",
+      "using": "true",
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_indicadores_usuarios",
+      "name": "olo_ind_usuarios_all",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "ALL",
+      "using": "true",
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_kv",
+      "name": "olo_kv_delete",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_kv",
+      "name": "olo_kv_insert",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_kv",
+      "name": "olo_kv_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_kv",
+      "name": "olo_kv_update",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "true",
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_delete",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_insert",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_kv_anon_delete",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "DELETE",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_kv_anon_insert",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_kv_anon_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_kv_anon_update",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "UPDATE",
+      "using": "true",
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_kv_delete",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "(olo_mov_es_admin() OR (olo_mov_pais_de_fila(key, value) IS NULL) OR (olo_mov_pais_de_fila(key, value) = olo_mov_pais_actual()))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_kv_insert",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(olo_mov_es_admin() OR (olo_mov_pais_de_fila(key, value) IS NULL) OR (olo_mov_pais_de_fila(key, value) = olo_mov_pais_actual()))"
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_kv_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "(olo_mov_es_admin() OR (olo_mov_pais_de_fila(key, value) IS NULL) OR (olo_mov_pais_de_fila(key, value) = olo_mov_pais_actual()))",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_kv_update",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "(olo_mov_es_admin() OR (olo_mov_pais_de_fila(key, value) IS NULL) OR (olo_mov_pais_de_fila(key, value) = olo_mov_pais_actual()))",
+      "with_check": "(olo_mov_es_admin() OR (olo_mov_pais_de_fila(key, value) IS NULL) OR (olo_mov_pais_de_fila(key, value) = olo_mov_pais_actual()))"
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv",
+      "name": "olo_mov_update",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "true",
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_usuarios",
+      "name": "olo_mov_usuarios_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "((user_id = auth.uid()) OR olo_mov_es_admin())",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_organigramas_kv",
+      "name": "olo_org_delete",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_organigramas_kv",
+      "name": "olo_org_insert",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_organigramas_kv",
+      "name": "olo_org_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_organigramas_kv",
+      "name": "olo_org_update",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "true",
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "anon puede actualizar sus envios",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "UPDATE",
+      "using": "((key ~~ 'surveys:%'::text) OR (key ~~ 'repo:%'::text))",
+      "with_check": "((key ~~ 'surveys:%'::text) OR (key ~~ 'repo:%'::text))"
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "anon puede enviar entrevistas",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((key ~~ 'surveys:%'::text) OR (key ~~ 'repo:%'::text))"
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "anon_insert_only",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(key ~~ 'surveys:%'::text)"
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "anon_insert_repo",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "(key ~~ 'repo:%'::text)"
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "authenticated_full_access",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "ALL",
+      "using": "true",
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "olo_sal_delete",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "DELETE",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "olo_sal_insert",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "olo_sal_insert_anon",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "INSERT",
+      "using": null,
+      "with_check": "((key ~~ 'surveys:%'::text) OR (key ~~ 'repo:%'::text))"
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "olo_sal_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "olo_sal_select_config",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "anon"
+      ],
+      "command": "SELECT",
+      "using": "(key ~~ 'config:%'::text)",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv",
+      "name": "olo_sal_update",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "authenticated"
+      ],
+      "command": "UPDATE",
+      "using": "true",
+      "with_check": "true"
+    },
+    {
+      "schema": "public",
+      "table": "olo_usuarios",
+      "name": "olo_usuarios_select",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "public"
+      ],
+      "command": "SELECT",
+      "using": "true",
+      "with_check": null
+    },
+    {
+      "schema": "public",
+      "table": "olo_usuarios",
+      "name": "olo_usuarios_write",
+      "permissive": "PERMISSIVE",
+      "roles": [
+        "public"
+      ],
+      "command": "ALL",
+      "using": "true",
+      "with_check": "true"
+    }
+  ],
+  "storage_buckets": [],
+  "realtime_publication": [
+    {
+      "schema": "public",
+      "table": "olo_kv"
+    },
+    {
+      "schema": "public",
+      "table": "olo_movilidad_kv"
+    },
+    {
+      "schema": "public",
+      "table": "olo_organigramas_kv"
+    },
+    {
+      "schema": "public",
+      "table": "olo_salida_kv"
+    }
+  ],
+  "cron_jobs": [],
+  "auth": {
+    "users_count": 5,
+    "providers": [
+      "email"
+    ],
+    "uses_user_metadata": true,
+    "user_metadata_keys": [
+      "email_verified"
+    ]
+  }
+}

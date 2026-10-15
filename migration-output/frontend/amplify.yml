@@ -1,0 +1,39 @@
+# Amplify Hosting — SPA (Vite). Variables públicas por ambiente (rama) en la consola de Amplify o en
+# el pipeline: VITE_API_BASE_URL, VITE_COGNITO_USER_POOL_ID, VITE_COGNITO_CLIENT_ID, VITE_APP_EXPOSURE.
+# La app es una sola página (los roles van en el hash #c= / #g=): no necesita rewrites de rutas.
+#
+# CSP: la interfaz original se conserva tal cual, por eso:
+# - script-src permite cdnjs (SheetJS xlsx y jsPDF, como en el original) y 'unsafe-inline' porque la
+#   UI genera manejadores onclick="..." en el HTML dinámico;
+# - style-src/font-src permiten Google Fonts (Inter y Space Grotesk).
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm install
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+customHeaders:
+  - pattern: '**/*'
+    headers:
+      - key: Strict-Transport-Security
+        value: max-age=31536000; includeSubDomains
+      - key: X-Content-Type-Options
+        value: nosniff
+      - key: X-Frame-Options
+        value: DENY
+      - key: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - key: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
+      - key: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.execute-api.us-east-1.amazonaws.com https://cognito-idp.us-east-1.amazonaws.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' mailto:"

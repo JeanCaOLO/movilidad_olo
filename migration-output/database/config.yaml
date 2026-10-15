@@ -1,0 +1,31 @@
+compania: olo
+aplicativo: movilidad
+ambiente_default: dev
+ambientes:
+- dev
+- qa
+- prd
+schemas:
+  public: core
+extra_schemas: []
+naming:
+  rename_objects: true
+  keep_original: []
+rls_mode: backend
+auth_users_strategy: mirror_table
+database_owner_role: admin
+# El proyecto Supabase es compartido con otros sistemas de OLO (indicadores, organigramas, salida,
+# olo_kv/olo_usuarios). Esta migración solo lleva los objetos de Movilidad.
+skip_objects:
+- public.olo_indicadores_kv
+- public.olo_indicadores_roles
+- public.olo_indicadores_usuarios
+- public.olo_kv
+- public.olo_organigramas_kv
+- public.olo_salida_kv
+- public.olo_usuarios
+- public.olo_indicadores_set_updated_at
+- public.olo_indicadores_usuarios_touch
+- public.olo_kv_touch
+- public.olo_organigramas_kv_touch
+- public.olo_salida_kv_touch

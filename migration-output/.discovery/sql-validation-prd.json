@@ -1,0 +1,82 @@
+{
+  "database": "olo_prd_movilidad_db",
+  "steps": [
+    {
+      "step": "provisioning (ejecución 1)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "schema (ejecución 1)",
+      "ok": true,
+      "detail": "psql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_schema.sql:145: NOTICE:  disparador Â«trg_olo_movilidad_kv_touchÂ» para la relaciÃ³n Â«olo_prd_movilidad_sch_core.tbl_olo_movilidad_kvÂ» no existe, omitiendo\n"
+    },
+    {
+      "step": "datos iniciales (ejecución 1)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "validation (ejecución 1) TOTAL_FALTA=0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "provisioning (ejecución 2)",
+      "ok": true,
+      "detail": "psql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:91: NOTICE:  el rol Â«rw_movilidadÂ» ya recibiÃ³ membresÃ­a en el rol Â«ro_movilidadÂ» por parte del rol Â«postgresÂ»\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:92: NOTICE:  el rol Â«ddl_movilidadÂ» ya recibiÃ³ membresÃ­a en el rol Â«rw_movilidadÂ» por parte del rol Â«postgresÂ»\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:93: NOTICE:  el rol Â«admin_movilidadÂ» ya recibiÃ³ membresÃ­a en el rol Â«ddl_movilidadÂ» por parte del rol Â«postgresÂ»\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:95: NOTICE:  el rol Â«postgresÂ» ya recibiÃ³ membresÃ­a en el rol Â«admin_movilidadÂ» por parte del rol Â«postgresÂ»\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:101: NOTICE:  el rol Â«usr_movilidad_reportÂ» ya recibiÃ³ membresÃ­a en el rol Â«ro_movilidadÂ» por parte del rol Â«postgresÂ»\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:105: NOTICE:  el rol Â«usr_movilidad_appÂ» ya recibiÃ³ membresÃ­a en el rol Â«rw_movilidadÂ» por parte del rol Â«postgresÂ»\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:109: NOTICE:  el rol Â«usr_movilidad_deployÂ» ya recibiÃ³ membresÃ­a en el rol Â«ddl_movilidadÂ» por parte del rol Â«postgresÂ»\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:113: NOTICE:  el rol Â«usr_movilidad_dbaÂ» ya recibiÃ³ membresÃ­a en el rol Â«admin_movilidadÂ» por parte del rol Â«postgresÂ»\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:127: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» ya existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:162: NOTICE:  la extensiÃ³n Â«pg_stat_statementsÂ» ya existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:163: NOTICE:  la extensiÃ³n Â«pgcryptoÂ» ya existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_provisioning.sql:165: NOTICE:  la extensiÃ³n Â«uuid-osspÂ» ya existe, omitiendo\n"
+    },
+    {
+      "step": "schema (ejecución 2)",
+      "ok": true,
+      "detail": "psql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_schema.sql:38: NOTICE:  la relaciÃ³n Â«tbl_app_usersÂ» ya existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_schema.sql:39: NOTICE:  la relaciÃ³n Â«idx_app_users_email_exprÂ» ya existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_schema.sql:101: NOTICE:  la relaciÃ³n Â«tbl_olo_movilidad_kvÂ» ya existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_schema.sql:108: NOTICE:  la relaciÃ³n Â«tbl_olo_movilidad_usuariosÂ» ya existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_schema.sql:137: NOTICE:  la relaciÃ³n Â«idx_olo_movilidad_kv_keyÂ» ya existe, omitiendo\n"
+    },
+    {
+      "step": "datos iniciales (ejecución 2)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "validation (ejecución 2) TOTAL_FALTA=0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "search_path del usuario de la app",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "rollback de objetos",
+      "ok": true,
+      "detail": "vironments/prd/aurora_postgresql_rollback.sql:38: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:39: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:41: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:42: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:43: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:44: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:45: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:46: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:47: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:48: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:49: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:52: NOTICE:  no existe la extensiÃ³n Â«uuid-osspÂ», omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:53: NOTICE:  no existe la extensiÃ³n Â«pgcryptoÂ», omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:54: NOTICE:  no existe la extensiÃ³n Â«pg_stat_statementsÂ», omitiendo\npsql:C:/Users/dpaniagua/Documents/Migracion/movilidad_olo/migration-output/database/environments/prd/aurora_postgresql_rollback.sql:56: NOTICE:  el esquema Â«olo_prd_movilidad_sch_coreÂ» no existe, omitiendo\n"
+    },
+    {
+      "step": "esquemas eliminados",
+      "ok": true,
+      "detail": "quedan 0"
+    },
+    {
+      "step": "rollback MANUAL (base, usuarios, roles)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "roles y usuarios eliminados",
+      "ok": true,
+      "detail": "quedan 0"
+    }
+  ],
+  "status": "PASSED",
+  "sandbox_mode": "local",
+  "validation_round_1": {
+    "checks": 45,
+    "total_falta": 0,
+    "falta": []
+  },
+  "validation_round_2": {
+    "checks": 45,
+    "total_falta": 0,
+    "falta": []
+  }
+}

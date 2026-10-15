@@ -1,0 +1,20 @@
+{
+  "origin": "base indicada en MIRROR_DB_URL (solo lectura)",
+  "envs": {
+    "dev": {
+      "auth.users": 5,
+      "public.olo_movilidad_kv": 917,
+      "public.olo_movilidad_usuarios": 4
+    },
+    "qa": {
+      "auth.users": 5,
+      "public.olo_movilidad_kv": 917,
+      "public.olo_movilidad_usuarios": 4
+    },
+    "prd": {
+      "auth.users": 5,
+      "public.olo_movilidad_kv": 917,
+      "public.olo_movilidad_usuarios": 4
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "environment": "prd",
+  "database": "olo_prd_movilidad_db",
+  "schemas": {
+    "public": "olo_prd_movilidad_sch_core"
+  },
+  "search_path": [
+    "olo_prd_movilidad_sch_core"
+  ],
+  "roles": {
+    "ro": "ro_movilidad",
+    "rw": "rw_movilidad",
+    "ddl": "ddl_movilidad",
+    "admin": "admin_movilidad"
+  },
+  "users": {
+    "ro": "usr_movilidad_report",
+    "rw": "usr_movilidad_app",
+    "ddl": "usr_movilidad_deploy",
+    "admin": "usr_movilidad_dba"
+  },
+  "relations": [
+    {
+      "source": "public.olo_movilidad_kv",
+      "target": "olo_prd_movilidad_sch_core.tbl_olo_movilidad_kv",
+      "target_name": "tbl_olo_movilidad_kv",
+      "kind": "table"
+    },
+    {
+      "source": "public.olo_movilidad_usuarios",
+      "target": "olo_prd_movilidad_sch_core.tbl_olo_movilidad_usuarios",
+      "target_name": "tbl_olo_movilidad_usuarios",
+      "kind": "table"
+    },
+    {
+      "source": "auth.users",
+      "target": "olo_prd_movilidad_sch_core.tbl_app_users",
+      "target_name": "tbl_app_users",
+      "kind": "table"
+    }
+  ],
+  "functions": [
+    {
+      "source": "public.olo_mov_es_admin",
+      "target": "olo_prd_movilidad_sch_core.fn_olo_mov_es_admin",
+      "target_name": "fn_olo_mov_es_admin"
+    },
+    {
+      "source": "public.olo_mov_pais_actual",
+      "target": "olo_prd_movilidad_sch_core.fn_olo_mov_pais_actual",
+      "target_name": "fn_olo_mov_pais_actual"
+    },
+    {
+      "source": "public.olo_mov_pais_de_fila",
+      "target": "olo_prd_movilidad_sch_core.fn_olo_mov_pais_de_fila",
+      "target_name": "fn_olo_mov_pais_de_fila"
+    },
+    {
+      "source": "public.olo_movilidad_kv_touch",
+      "target": "olo_prd_movilidad_sch_core.fn_olo_movilidad_kv_touch",
+      "target_name": "fn_olo_movilidad_kv_touch"
+    }
+  ],
+  "auth_functions": {
+    "auth.uid()": "fn_auth_uid()",
+    "auth.role()": "fn_auth_role()",
+    "auth.email()": "fn_auth_email()",
+    "auth.jwt()": "fn_auth_jwt()"
+  },
+  "constraints": [
+    {
+      "table": "public.olo_movilidad_kv",
+      "source": "olo_movilidad_kv_pkey",
+      "target": "pk_olo_movilidad_kv"
+    },
+    {
+      "table": "public.olo_movilidad_usuarios",
+      "source": "olo_movilidad_usuarios_pkey",
+      "target": "pk_olo_movilidad_usuarios"
+    },
+    {
+      "table": "public.olo_movilidad_usuarios",
+      "source": "olo_movilidad_usuarios_user_id_fkey",
+      "target": "fk_olo_movilidad_usuarios_app_users"
+    }
+  ],
+  "indexes": [
+    {
+      "source": "public.olo_movilidad_kv_prefix_idx",
+      "target": "idx_olo_movilidad_kv_key"
+    }
+  ],
+  "triggers": [
+    {
+      "table": "public.olo_movilidad_kv",
+      "source": "trg_olo_movilidad_kv_touch",
+      "target": "trg_olo_movilidad_kv_touch"
+    }
+  ]
+}

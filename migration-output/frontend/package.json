@@ -1,0 +1,23 @@
+{
+  "name": "movilidad",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "aws-amplify": "6.22.1",
+    "axios": "1.20.0"
+  },
+  "devDependencies": {
+    "prettier": "3.9.9",
+    "typescript": "5.9.3",
+    "vite": "8.3.2"
+  }
+}

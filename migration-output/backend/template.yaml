@@ -1,0 +1,640 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: MOVILIDAD - API | Backend serverless (Lambda + API Gateway + Aurora)
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues:
+    - dev
+    - qa
+    - prod
+    Description: Ambiente de despliegue
+  VpcSubnetIds:
+    Type: AWS::SSM::Parameter::Value<List<AWS::EC2::Subnet::Id>>
+    Description: Ruta SSM con las subnets privadas de las Lambdas
+  LambdaSecurityGroupId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::SecurityGroup::Id>
+    Description: Ruta SSM con el Security Group de las Lambdas
+  DbProxyEndpoint:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: Ruta SSM con el endpoint de RDS Proxy / Aurora
+  DbSecretName:
+    Type: String
+    Description: Nombre del secreto de usr_<app>_app (nunca la password)
+  DbName:
+    Type: String
+    Description: Base Aurora del ambiente ({compania}_{amb}_{app}_db)
+  AllowedOrigins:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: Ruta SSM con el origen del frontend (CORS estricto)
+  CognitoUserPoolArn:
+    Type: String
+    Default: ''
+    Description: ARN de un User Pool existente; vacío = crear uno en el stack
+  AlarmTopicArn:
+    Type: String
+    Default: ''
+    Description: SNS para alarmas (opcional)
+  LogLevel:
+    Type: String
+    Default: INFO
+    AllowedValues:
+    - DEBUG
+    - INFO
+    - WARNING
+    - ERROR
+  WafRateLimit:
+    Type: Number
+    Default: 2000
+    MinValue: 100
+    Description: Peticiones por IP cada 5 minutos antes de bloquear
+  SesFromEmail:
+    Type: AWS::SSM::Parameter::Value<String>
+    Description: Ruta SSM con el remitente de correo verificado en SES
+Conditions:
+  IsProduction: !Equals
+  - !Ref 'Environment'
+  - prod
+  CreateUserPool: !Equals
+  - !Ref 'CognitoUserPoolArn'
+  - ''
+  HasAlarmTopic: !Not
+  - !Equals
+    - !Ref 'AlarmTopicArn'
+    - ''
+Globals:
+  Function:
+    Runtime: python3.13
+    Architectures:
+    - x86_64
+    MemorySize: 512
+    Timeout: 30
+    CodeUri: src/
+    VpcConfig:
+      SubnetIds: !Ref 'VpcSubnetIds'
+      SecurityGroupIds:
+      - !Ref 'LambdaSecurityGroupId'
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref 'Environment'
+        SERVICE_NAME: movilidad
+        LOG_LEVEL: !Ref 'LogLevel'
+        DB_SECRET_NAME: !Ref 'DbSecretName'
+        DB_NAME: !Ref 'DbName'
+        DB_PROXY_ENDPOINT: !Ref 'DbProxyEndpoint'
+        DB_PORT: '5432'
+        DB_SSLMODE: require
+        ALLOWED_ORIGINS: !Ref 'AllowedOrigins'
+Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Condition: CreateUserPool
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      UserPoolName: !Sub '${AWS::StackName}-users'
+      UsernameAttributes:
+      - email
+      AutoVerifiedAttributes:
+      - email
+      MfaConfiguration: OPTIONAL
+      EnabledMfas:
+      - SOFTWARE_TOKEN_MFA
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+        - Name: verified_email
+          Priority: 1
+      DeletionProtection: !If [IsProduction, ACTIVE, INACTIVE]
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          TemporaryPasswordValidityDays: 3
+      UserPoolTags:
+        Project: MOVILIDAD
+        Environment: !Ref 'Environment'
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Condition: CreateUserPool
+    Properties:
+      ClientName: !Sub '${AWS::StackName}-web'
+      UserPoolId: !Ref 'UserPool'
+      GenerateSecret: false
+      ExplicitAuthFlows:
+      - ALLOW_USER_SRP_AUTH
+      - ALLOW_REFRESH_TOKEN_AUTH
+      PreventUserExistenceErrors: ENABLED
+      EnableTokenRevocation: true
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub '${AWS::StackName}-api'
+      Description: MOVILIDAD - API | REST API (public)
+      StageName: !Ref 'Environment'
+      EndpointConfiguration:
+        Type: REGIONAL
+      OpenApiVersion: 3.0.1
+      Cors:
+        AllowOrigin: !Sub '''${AllowedOrigins}'''
+        AllowHeaders: '''Authorization,Content-Type'''
+        AllowMethods: '''GET,POST,PUT,PATCH,DELETE,OPTIONS'''
+        MaxAge: '''600'''
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !If
+            - CreateUserPool
+            - !GetAtt 'UserPool.Arn'
+            - !Ref 'CognitoUserPoolArn'
+            Identity:
+              Header: Authorization
+      MethodSettings:
+      - ResourcePath: /*
+        HttpMethod: '*'
+        ThrottlingBurstLimit: 200
+        ThrottlingRateLimit: 100
+      GatewayResponses:
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: !Sub '''${AllowedOrigins}'''
+              Access-Control-Allow-Headers: '''Authorization,Content-Type'''
+        DEFAULT_5XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: !Sub '''${AllowedOrigins}'''
+              Access-Control-Allow-Headers: '''Authorization,Content-Type'''
+        UNAUTHORIZED:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: !Sub '''${AllowedOrigins}'''
+              Access-Control-Allow-Headers: '''Authorization,Content-Type'''
+        ACCESS_DENIED:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: !Sub '''${AllowedOrigins}'''
+              Access-Control-Allow-Headers: '''Authorization,Content-Type'''
+  Api5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${AWS::StackName}-api5xx'
+      AlarmDescription: MOVILIDAD - errores 5XX en API Gateway
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Threshold: 1
+      Period: 300
+      Statistic: Sum
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+      - HasAlarmTopic
+      - - !Ref 'AlarmTopicArn'
+      - !Ref 'AWS::NoValue'
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+      - Name: ApiName
+        Value: !Sub '${AWS::StackName}-api'
+  ListMovilidadEntriesLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-list-movilidad-entries'
+      RetentionInDays: !If [IsProduction, 30, 7]
+  ListMovilidadEntriesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-list-movilidad-entries'
+      Description: MOVILIDAD - LIST_MOVILIDAD_ENTRIES | GET /movilidad/entries
+      Handler: entrypoints.lambda_handlers.movilidad.list_movilidad_entries_handler
+      LoggingConfig:
+        LogFormat: JSON
+        LogGroup: !Ref 'ListMovilidadEntriesLogGroup'
+      Events:
+        GetMovilidadEntries:
+          Type: Api
+          Properties:
+            RestApiId: !Ref 'Api'
+            Path: /movilidad/entries
+            Method: get
+            Auth:
+              Authorizer: NONE
+      Role: !GetAtt 'DbRole.Arn'
+  ListMovilidadEntriesErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${AWS::StackName}-list-movilidad-entries-errors'
+      AlarmDescription: MOVILIDAD - errores en ListMovilidadEntriesFunction
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Threshold: 1
+      Period: 300
+      Statistic: Sum
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+      - HasAlarmTopic
+      - - !Ref 'AlarmTopicArn'
+      - !Ref 'AWS::NoValue'
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+      - Name: FunctionName
+        Value: !Ref 'ListMovilidadEntriesFunction'
+  GetMovilidadEntryLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-get-movilidad-entry'
+      RetentionInDays: !If [IsProduction, 30, 7]
+  GetMovilidadEntryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-get-movilidad-entry'
+      Description: MOVILIDAD - GET_MOVILIDAD_ENTRY | GET /movilidad/entries/{key}
+      Handler: entrypoints.lambda_handlers.movilidad.get_movilidad_entry_handler
+      LoggingConfig:
+        LogFormat: JSON
+        LogGroup: !Ref 'GetMovilidadEntryLogGroup'
+      Events:
+        GetMovilidadEntriesKey:
+          Type: Api
+          Properties:
+            RestApiId: !Ref 'Api'
+            Path: /movilidad/entries/{key}
+            Method: get
+            Auth:
+              Authorizer: NONE
+      Role: !GetAtt 'DbRole.Arn'
+  GetMovilidadEntryErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${AWS::StackName}-get-movilidad-entry-errors'
+      AlarmDescription: MOVILIDAD - errores en GetMovilidadEntryFunction
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Threshold: 1
+      Period: 300
+      Statistic: Sum
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+      - HasAlarmTopic
+      - - !Ref 'AlarmTopicArn'
+      - !Ref 'AWS::NoValue'
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+      - Name: FunctionName
+        Value: !Ref 'GetMovilidadEntryFunction'
+  SaveMovilidadEntryLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-save-movilidad-entry'
+      RetentionInDays: !If [IsProduction, 30, 7]
+  SaveMovilidadEntryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-save-movilidad-entry'
+      Description: MOVILIDAD - SAVE_MOVILIDAD_ENTRY | PUT /movilidad/entries/{key}
+      Handler: entrypoints.lambda_handlers.movilidad.save_movilidad_entry_handler
+      LoggingConfig:
+        LogFormat: JSON
+        LogGroup: !Ref 'SaveMovilidadEntryLogGroup'
+      Events:
+        PutMovilidadEntriesKey:
+          Type: Api
+          Properties:
+            RestApiId: !Ref 'Api'
+            Path: /movilidad/entries/{key}
+            Method: put
+            Auth:
+              Authorizer: NONE
+      Role: !GetAtt 'DbRole.Arn'
+  SaveMovilidadEntryErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${AWS::StackName}-save-movilidad-entry-errors'
+      AlarmDescription: MOVILIDAD - errores en SaveMovilidadEntryFunction
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Threshold: 1
+      Period: 300
+      Statistic: Sum
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+      - HasAlarmTopic
+      - - !Ref 'AlarmTopicArn'
+      - !Ref 'AWS::NoValue'
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+      - Name: FunctionName
+        Value: !Ref 'SaveMovilidadEntryFunction'
+  DeleteMovilidadEntryLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-delete-movilidad-entry'
+      RetentionInDays: !If [IsProduction, 30, 7]
+  DeleteMovilidadEntryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-delete-movilidad-entry'
+      Description: MOVILIDAD - DELETE_MOVILIDAD_ENTRY | DELETE /movilidad/entries/{key}
+      Handler: entrypoints.lambda_handlers.movilidad.delete_movilidad_entry_handler
+      LoggingConfig:
+        LogFormat: JSON
+        LogGroup: !Ref 'DeleteMovilidadEntryLogGroup'
+      Events:
+        DeleteMovilidadEntriesKey:
+          Type: Api
+          Properties:
+            RestApiId: !Ref 'Api'
+            Path: /movilidad/entries/{key}
+            Method: delete
+            Auth:
+              Authorizer: NONE
+      Role: !GetAtt 'DbRole.Arn'
+  DeleteMovilidadEntryErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${AWS::StackName}-delete-movilidad-entry-errors'
+      AlarmDescription: MOVILIDAD - errores en DeleteMovilidadEntryFunction
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Threshold: 1
+      Period: 300
+      Statistic: Sum
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+      - HasAlarmTopic
+      - - !Ref 'AlarmTopicArn'
+      - !Ref 'AWS::NoValue'
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+      - Name: FunctionName
+        Value: !Ref 'DeleteMovilidadEntryFunction'
+  GetMyCountryProfileLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-get-my-country-profile'
+      RetentionInDays: !If [IsProduction, 30, 7]
+  GetMyCountryProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-get-my-country-profile'
+      Description: MOVILIDAD - GET_MY_COUNTRY_PROFILE | GET /me/country-profile
+      Handler: entrypoints.lambda_handlers.perfiles.get_my_country_profile_handler
+      LoggingConfig:
+        LogFormat: JSON
+        LogGroup: !Ref 'GetMyCountryProfileLogGroup'
+      Events:
+        GetMeCountryProfile:
+          Type: Api
+          Properties:
+            RestApiId: !Ref 'Api'
+            Path: /me/country-profile
+            Method: get
+      Role: !GetAtt 'DbRole.Arn'
+  GetMyCountryProfileErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${AWS::StackName}-get-my-country-profile-errors'
+      AlarmDescription: MOVILIDAD - errores en GetMyCountryProfileFunction
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Threshold: 1
+      Period: 300
+      Statistic: Sum
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+      - HasAlarmTopic
+      - - !Ref 'AlarmTopicArn'
+      - !Ref 'AWS::NoValue'
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+      - Name: FunctionName
+        Value: !Ref 'GetMyCountryProfileFunction'
+  SendEvaluationEmailLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-send-evaluation-email'
+      RetentionInDays: !If [IsProduction, 30, 7]
+  SendEvaluationEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-send-evaluation-email'
+      Description: MOVILIDAD - SEND_EVALUATION_EMAIL | POST /notifications/evaluation-emails
+      Handler: entrypoints.lambda_handlers.notificaciones.send_evaluation_email_handler
+      LoggingConfig:
+        LogFormat: JSON
+        LogGroup: !Ref 'SendEvaluationEmailLogGroup'
+      Environment:
+        Variables:
+          SES_FROM_EMAIL: !Ref 'SesFromEmail'
+      Events:
+        PostNotificationsEvaluationEmails:
+          Type: Api
+          Properties:
+            RestApiId: !Ref 'Api'
+            Path: /notifications/evaluation-emails
+            Method: post
+            Auth:
+              Authorizer: NONE
+      Role: !GetAtt 'DbSesSendRole.Arn'
+  SendEvaluationEmailErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${AWS::StackName}-send-evaluation-email-errors'
+      AlarmDescription: MOVILIDAD - errores en SendEvaluationEmailFunction
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: 1
+      Threshold: 1
+      Period: 300
+      Statistic: Sum
+      TreatMissingData: notBreaching
+      AlarmActions: !If
+      - HasAlarmTopic
+      - - !Ref 'AlarmTopicArn'
+      - !Ref 'AWS::NoValue'
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+      - Name: FunctionName
+        Value: !Ref 'SendEvaluationEmailFunction'
+  DbRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: 'MOVILIDAD - rol compartido por 5 función(es): db'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: least-privilege
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: WriteOwnLogs
+            Effect: Allow
+            Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource:
+            - !GetAtt 'DeleteMovilidadEntryLogGroup.Arn'
+            - !GetAtt 'GetMovilidadEntryLogGroup.Arn'
+            - !GetAtt 'GetMyCountryProfileLogGroup.Arn'
+            - !GetAtt 'ListMovilidadEntriesLogGroup.Arn'
+            - !GetAtt 'SaveMovilidadEntryLogGroup.Arn'
+          - Sid: VpcNetworkInterfaces
+            Effect: Allow
+            Action:
+            - ec2:CreateNetworkInterface
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DeleteNetworkInterface
+            - ec2:AssignPrivateIpAddresses
+            - ec2:UnassignPrivateIpAddresses
+            Resource: '*'
+          - Sid: ReadDbSecret
+            Effect: Allow
+            Action:
+            - secretsmanager:GetSecretValue
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${DbSecretName}-??????'
+  DbSesSendRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: 'MOVILIDAD - rol compartido por 1 función(es): db, ses_send'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: least-privilege
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: WriteOwnLogs
+            Effect: Allow
+            Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource:
+            - !GetAtt 'SendEvaluationEmailLogGroup.Arn'
+          - Sid: VpcNetworkInterfaces
+            Effect: Allow
+            Action:
+            - ec2:CreateNetworkInterface
+            - ec2:DescribeNetworkInterfaces
+            - ec2:DeleteNetworkInterface
+            - ec2:AssignPrivateIpAddresses
+            - ec2:UnassignPrivateIpAddresses
+            Resource: '*'
+          - Sid: ReadDbSecret
+            Effect: Allow
+            Action:
+            - secretsmanager:GetSecretValue
+            Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${DbSecretName}-??????'
+          - Sid: SesSendFromConfiguredSender
+            Effect: Allow
+            Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+            Resource: !Sub 'arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/*'
+            Condition:
+              StringEquals:
+                ses:FromAddress: !Ref 'SesFromEmail'
+  ApiWebAcl:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub '${AWS::StackName}-api-waf'
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub '${AWS::StackName}-api-waf'
+      Rules:
+      - Name: RateLimitPerIp
+        Priority: 0
+        Statement:
+          RateBasedStatement:
+            Limit: !Ref 'WafRateLimit'
+            AggregateKeyType: IP
+        VisibilityConfig:
+          SampledRequestsEnabled: true
+          CloudWatchMetricsEnabled: true
+          MetricName: RateLimitPerIp
+        Action:
+          Block: {}
+      - Name: AWSManagedCommon
+        Priority: 1
+        Statement:
+          ManagedRuleGroupStatement:
+            VendorName: AWS
+            Name: AWSManagedRulesCommonRuleSet
+        VisibilityConfig:
+          SampledRequestsEnabled: true
+          CloudWatchMetricsEnabled: true
+          MetricName: AWSManagedCommon
+        OverrideAction:
+          None: {}
+      - Name: AWSManagedKnownBadInputs
+        Priority: 2
+        Statement:
+          ManagedRuleGroupStatement:
+            VendorName: AWS
+            Name: AWSManagedRulesKnownBadInputsRuleSet
+        VisibilityConfig:
+          SampledRequestsEnabled: true
+          CloudWatchMetricsEnabled: true
+          MetricName: AWSManagedKnownBadInputs
+        OverrideAction:
+          None: {}
+  ApiWebAclAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    DependsOn: ApiStage
+    Properties:
+      ResourceArn: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${Api}/stages/${Environment}'
+      WebACLArn: !GetAtt 'ApiWebAcl.Arn'
+Outputs:
+  UserPoolId:
+    Condition: CreateUserPool
+    Value: !Ref 'UserPool'
+    Description: COGNITO_USER_POOL_ID del frontend
+  UserPoolClientId:
+    Condition: CreateUserPool
+    Value: !Ref 'UserPoolClient'
+    Description: COGNITO_CLIENT_ID del frontend
+  ApiUrl:
+    Description: URL base del API (VITE_/NEXT_PUBLIC_/REACT_APP_API_BASE_URL)
+    Value: !Sub 'https://${Api}.execute-api.${AWS::Region}.amazonaws.com/${Environment}'

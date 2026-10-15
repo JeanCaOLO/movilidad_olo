@@ -1,0 +1,392 @@
+{
+  "root": "C:\\Users\\dpaniagua\\AppData\\Local\\Temp\\claude\\C--Users-dpaniagua-Documents-Migracion-movilidad-olo\\cdb714fd-89a3-45e2-94f6-9a85d7a60d25\\scratchpad\\staging",
+  "client_identifiers": [
+    "sb",
+    "supabase",
+    "supabaseAdmin",
+    "supabaseClient"
+  ],
+  "files_scanned": 1,
+  "files_with_usage": [
+    "index-html-script.js"
+  ],
+  "package_dependencies": [],
+  "summary": {
+    "tables": {
+      "<dinámico>": {
+        "select": 5,
+        "upsert": 1,
+        "delete": 1
+      }
+    },
+    "rpc_functions": [],
+    "auth_methods": [
+      "getSession",
+      "signInWithPassword",
+      "signOut"
+    ],
+    "storage_buckets": [],
+    "storage_operations": [],
+    "realtime_tables": [],
+    "realtime_other": [],
+    "edge_functions_invoked": [
+      "reco-ia",
+      "send-eval-email"
+    ],
+    "env_variables": [
+      "SUPABASE_ANON_KEY",
+      "SUPABASE_URL"
+    ],
+    "packages": [],
+    "embeds": [],
+    "dynamic_targets": [
+      "index-html-script.js:23",
+      "index-html-script.js:32",
+      "index-html-script.js:48",
+      "index-html-script.js:55",
+      "index-html-script.js:61",
+      "index-html-script.js:67",
+      "index-html-script.js:174"
+    ],
+    "counts": {
+      "client": 2,
+      "table": 7,
+      "rpc": 0,
+      "auth": 3,
+      "storage": 0,
+      "realtime": 0,
+      "edge_function": 2,
+      "env": 4,
+      "import": 0
+    }
+  },
+  "operations": [
+    {
+      "file": "index-html-script.js",
+      "line": 11,
+      "kind": "client",
+      "snippet": "createClient(SUPABASE_URL, SUPABASE_ANON_KEY); /* discovery: original es (cond) ? window.supabase.createClient(...) : null */",
+      "factory": "createClient",
+      "declaration": "const sb ="
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 11,
+      "kind": "client",
+      "snippet": "createClient(...) : null */",
+      "factory": "createClient",
+      "declaration": "const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY); /* discovery: original es (cond) ? window.supabase."
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 23,
+      "kind": "table",
+      "snippet": ".from(SB_TABLE).select('key').like('key', prefix+'%').limit(10000)",
+      "table": null,
+      "dynamic_target": true,
+      "operation": "select",
+      "returning": false,
+      "columns": "key",
+      "embeds": [],
+      "filters": [
+        {
+          "op": "like",
+          "args": "'key', prefix+'%'"
+        }
+      ],
+      "modifiers": [
+        {
+          "op": "limit",
+          "args": "10000"
+        }
+      ],
+      "count": false,
+      "chain": [
+        {
+          "method": "select",
+          "args": "'key'"
+        },
+        {
+          "method": "like",
+          "args": "'key', prefix+'%'"
+        },
+        {
+          "method": "limit",
+          "args": "10000"
+        }
+      ]
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 32,
+      "kind": "table",
+      "snippet": ".from(SB_TABLE).select('key,value').like('key', prefix+'%').range(from, from+PAGE-1)",
+      "table": null,
+      "dynamic_target": true,
+      "operation": "select",
+      "returning": false,
+      "columns": "key,value",
+      "embeds": [],
+      "filters": [
+        {
+          "op": "like",
+          "args": "'key', prefix+'%'"
+        }
+      ],
+      "modifiers": [
+        {
+          "op": "range",
+          "args": "from, from+PAGE-1"
+        }
+      ],
+      "count": false,
+      "chain": [
+        {
+          "method": "select",
+          "args": "'key,value'"
+        },
+        {
+          "method": "like",
+          "args": "'key', prefix+'%'"
+        },
+        {
+          "method": "range",
+          "args": "from, from+PAGE-1"
+        }
+      ]
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 48,
+      "kind": "table",
+      "snippet": ".from(SB_TABLE).select('value').eq('key',k).maybeSingle()",
+      "table": null,
+      "dynamic_target": true,
+      "operation": "select",
+      "returning": false,
+      "columns": "value",
+      "embeds": [],
+      "filters": [
+        {
+          "op": "eq",
+          "args": "'key',k"
+        }
+      ],
+      "modifiers": [
+        {
+          "op": "maybeSingle",
+          "args": ""
+        }
+      ],
+      "count": false,
+      "chain": [
+        {
+          "method": "select",
+          "args": "'value'"
+        },
+        {
+          "method": "eq",
+          "args": "'key',k"
+        },
+        {
+          "method": "maybeSingle",
+          "args": ""
+        }
+      ]
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 55,
+      "kind": "table",
+      "snippet": ".from(SB_TABLE).upsert({key:k, value:v},{onConflict:'key'})",
+      "table": null,
+      "dynamic_target": true,
+      "operation": "upsert",
+      "returning": false,
+      "columns": null,
+      "embeds": [],
+      "filters": [],
+      "modifiers": [],
+      "count": false,
+      "chain": [
+        {
+          "method": "upsert",
+          "args": "{key:k, value:v},{onConflict:'key'}"
+        }
+      ]
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 61,
+      "kind": "table",
+      "snippet": ".from(SB_TABLE).delete().eq('key',k)",
+      "table": null,
+      "dynamic_target": true,
+      "operation": "delete",
+      "returning": false,
+      "columns": null,
+      "embeds": [],
+      "filters": [
+        {
+          "op": "eq",
+          "args": "'key',k"
+        }
+      ],
+      "modifiers": [],
+      "count": false,
+      "chain": [
+        {
+          "method": "delete",
+          "args": ""
+        },
+        {
+          "method": "eq",
+          "args": "'key',k"
+        }
+      ]
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 67,
+      "kind": "table",
+      "snippet": ".from(SB_TABLE).select('key',{head:true,count:'exact'}).limit(1).then(({error})=>{ if(error){ console.error('Supabase:',error); toast('\\u26a0 Sin conexión con Supabase: revisa el script SQL de olo_movilidad_kv'); } else console.log('\\u2713 Conectado a Supabase ('+SB_TABLE+')'); })",
+      "table": null,
+      "dynamic_target": true,
+      "operation": "select",
+      "returning": false,
+      "columns": "key",
+      "embeds": [],
+      "filters": [],
+      "modifiers": [
+        {
+          "op": "limit",
+          "args": "1"
+        },
+        {
+          "op": "then",
+          "args": "({error})=>{ if(error){ console.error('Supabase:',error); toast('\\u26a0 Sin conexión con Supabase: revisa el script SQL de olo_movilidad_kv'); } else console.log('\\u2713 Conectado a Supabase ('+SB_TABLE+')'); }"
+        }
+      ],
+      "count": true,
+      "chain": [
+        {
+          "method": "select",
+          "args": "'key',{head:true,count:'exact'}"
+        },
+        {
+          "method": "limit",
+          "args": "1"
+        },
+        {
+          "method": "then",
+          "args": "({error})=>{ if(error){ console.error('Supabase:',error); toast('\\u26a0 Sin conexión con Supabase: revisa el script SQL de olo_movilidad_kv'); } else console.log('\\u2713 Conectado a Supabase ('+SB_TABLE+')'); }"
+        }
+      ]
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 174,
+      "kind": "table",
+      "snippet": ".from(AUTH_TABLE).select('pais,es_admin,email').eq('user_id', AUTH_USER.id).maybeSingle()",
+      "table": null,
+      "dynamic_target": true,
+      "operation": "select",
+      "returning": false,
+      "columns": "pais,es_admin,email",
+      "embeds": [],
+      "filters": [
+        {
+          "op": "eq",
+          "args": "'user_id', AUTH_USER.id"
+        }
+      ],
+      "modifiers": [
+        {
+          "op": "maybeSingle",
+          "args": ""
+        }
+      ],
+      "count": false,
+      "chain": [
+        {
+          "method": "select",
+          "args": "'pais,es_admin,email'"
+        },
+        {
+          "method": "eq",
+          "args": "'user_id', AUTH_USER.id"
+        },
+        {
+          "method": "maybeSingle",
+          "args": ""
+        }
+      ]
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 164,
+      "kind": "auth",
+      "snippet": ".auth.getSession()",
+      "method": "getSession",
+      "admin": false
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 188,
+      "kind": "auth",
+      "snippet": ".auth.signInWithPassword({ email:String(email||'').trim(), password:String(password||'') })",
+      "method": "signInWithPassword",
+      "admin": false
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 196,
+      "kind": "auth",
+      "snippet": ".auth.signOut()",
+      "method": "signOut",
+      "admin": false
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 228,
+      "kind": "edge_function",
+      "snippet": ".functions.invoke('send-eval-email',{body:payload})",
+      "function": "send-eval-email"
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 997,
+      "kind": "edge_function",
+      "snippet": ".functions.invoke('reco-ia',{body:d})",
+      "function": "reco-ia"
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 8,
+      "kind": "env",
+      "snippet": "SUPABASE_URL",
+      "variable": "SUPABASE_URL"
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 9,
+      "kind": "env",
+      "snippet": "SUPABASE_ANON_KEY",
+      "variable": "SUPABASE_ANON_KEY"
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 11,
+      "kind": "env",
+      "snippet": "SUPABASE_URL",
+      "variable": "SUPABASE_URL"
+    },
+    {
+      "file": "index-html-script.js",
+      "line": 11,
+      "kind": "env",
+      "snippet": "SUPABASE_ANON_KEY",
+      "variable": "SUPABASE_ANON_KEY"
+    }
+  ]
+}
